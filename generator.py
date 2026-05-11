@@ -127,6 +127,68 @@ class BlessingConfigManager:
             font-family: 'Microsoft YaHei', sans-serif;
         }}
 
+        /* 横屏提示层 */
+        #landscape-reminder {{
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #FFD700;
+            text-align: center;
+            padding: 20px;
+        }}
+
+        #landscape-reminder .rotate-icon {{
+            font-size: 80px;
+            margin-bottom: 30px;
+            animation: rotateHint 2s ease-in-out infinite;
+        }}
+
+        #landscape-reminder h2 {{
+            font-size: clamp(24px, 5vw, 36px);
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(255,215,0,0.8);
+        }}
+
+        #landscape-reminder p {{
+            font-size: clamp(16px, 3vw, 22px);
+            opacity: 0.9;
+            max-width: 80%;
+        }}
+
+        @keyframes rotateHint {{
+            0%, 100% {{ transform: rotate(0deg); }}
+            50% {{ transform: rotate(90deg); }}
+        }}
+
+        /* 竖屏时显示横屏提示 */
+        @media screen and (orientation: portrait) and (max-width: 768px) {{
+            #landscape-reminder {{
+                display: flex !important;
+            }}
+
+            .container,
+            #matrix-canvas,
+            #particle-canvas,
+            #text-display,
+            #control-btn {{
+                display: none !important;
+            }}
+        }}
+
+        @media screen and (orientation: landscape) or (min-width: 769px) {{
+            #landscape-reminder {{
+                display: none !important;
+            }}
+        }}
+
         #matrix-canvas {{
             position: fixed;
             top: 0;
@@ -210,6 +272,13 @@ class BlessingConfigManager:
     </style>
 </head>
 <body>
+    <!-- 横屏提示（手机竖屏时显示） -->
+    <div id="landscape-reminder">
+        <div class="rotate-icon">📱</div>
+        <h2>请横屏观看以获得最佳体验</h2>
+        <p>旋转您的手机至横屏模式<br>享受完整的高考祝福动画效果 ✨</p>
+    </div>
+
     <canvas id="matrix-canvas"></canvas>
     <canvas id="particle-canvas"></canvas>
 
@@ -848,7 +917,28 @@ class BlessingConfigManager:
                 initParticleCanvas();
             }}
             initMatrix();
+            checkOrientation();
         }});
+
+        // ============ 横屏检测（手机端）============
+        function checkOrientation() {{
+            const isMobile = window.innerWidth <= 768;
+            const isPortrait = window.innerHeight > window.innerWidth;
+            const reminder = document.getElementById('landscape-reminder');
+
+            if (isMobile && isPortrait) {{
+                if (reminder) reminder.style.display = 'flex';
+            }} else {{
+                if (reminder) reminder.style.display = 'none';
+            }}
+        }}
+
+        window.addEventListener('orientationchange', () => {{
+            setTimeout(checkOrientation, 100);
+        }});
+
+        // 初始化时检查
+        checkOrientation();
     </script>
 </body>
 </html>'''
