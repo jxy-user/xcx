@@ -564,25 +564,49 @@ class BlessingConfigManager:
             const canvasHeight = particleCanvas.height || window.innerHeight;
 
             // 基础字体大小
-            let fontSize = CONFIG.FONT_SIZE;
+            let fontSize = CONFIG.FONT_SIZE;  // 200px
 
-            // 根据屏幕宽度调整（手机端缩小字体）
-            if (canvasWidth < 768) {{
-                // 手机横屏：宽度有限，按比例缩放
-                // 预估每个字符约占宽度的比例
+            // 判断是否为移动设备
+            const isMobile = canvasWidth < 1024 || canvasHeight < 768;
+
+            if (isMobile) {{
+                // 移动设备：使用更激进的缩放策略
+
+                // 根据屏幕较小边来限制字体
+                const minDimension = Math.min(canvasWidth, canvasHeight);
+
+                // 方法1：基于字符数和可用宽度计算
                 const charCount = text.length;
-                const estimatedCharWidth = fontSize * 0.7; // 中文字符约为字号的70%
-                const totalTextWidth = charCount * estimatedCharWidth;
+                const maxWidth = canvasWidth * 0.85;  // 使用85%宽度
+                const maxHeight = canvasHeight * 0.5;   // 高度不超过50%
 
-                // 如果文字总宽度超过屏幕80%，则缩小字体
-                if (totalTextWidth > canvasWidth * 0.8) {{
-                    fontSize = Math.floor((canvasWidth * 0.8) / (charCount * 0.7));
+                // 预估：中文字符宽度约为字号的0.6-0.8倍
+                let fontSizeByWidth = Math.floor(maxWidth / (charCount * 0.75));
+                let fontSizeByHeight = Math.floor(maxHeight);
+
+                // 取两者中较小的值
+                fontSize = Math.min(fontSizeByWidth, fontSizeByHeight, fontSize);
+
+                // 针对不同字符长度的特殊优化
+                if (charCount <= 2) {{
+                    // 1-2个字：可以稍大，但不超过屏幕的40%
+                    fontSize = Math.min(fontSize, Math.floor(minDimension * 0.4));
+                }} else if (charCount <= 4) {{
+                    // 3-4个字：适中大小，不超过30%
+                    fontSize = Math.min(fontSize, Math.floor(minDimension * 0.3));
+                }} else if (charCount <= 6) {{
+                    // 5-6个字：更小一些，不超过25%
+                    fontSize = Math.min(fontSize, Math.floor(minDimension * 0.25));
+                }} else {{
+                    // 7个字以上：要很小，不超过20%
+                    fontSize = Math.min(fontSize, Math.floor(minDimension * 0.2));
                 }}
 
-                // 确保字体不会太小或太大
-                fontSize = Math.max(40, Math.min(fontSize, 120));
-            }} else if (canvasWidth < 1200) {{
-                // 平板或小屏幕笔记本：适度缩小
+                // 最终安全边界：确保不会太小或太大
+                fontSize = Math.max(30, Math.min(fontSize, 100));
+
+            }} else if (canvasWidth < 1400) {{
+                // 中等屏幕：适度缩小
                 fontSize = Math.min(fontSize, 160);
             }}
 
@@ -598,8 +622,19 @@ class BlessingConfigManager:
             // 使用响应式字体大小
             const responsiveFontSize = getResponsiveFontSize(text);
 
-            tempCtx.fillStyle = '#fff';
+            // 二次验证：实际测量文本宽度
             tempCtx.font = `bold ${{responsiveFontSize}}px Microsoft YaHei`;
+            const measuredWidth = tempCtx.measureText(text).width;
+
+            // 如果还是太宽，再次缩小
+            let finalFontSize = responsiveFontSize;
+            if (measuredWidth > particleCanvas.width * 0.85) {{
+                finalFontSize = Math.floor(responsiveFontSize * (particleCanvas.width * 0.85) / measuredWidth);
+                finalFontSize = Math.max(25, finalFontSize);  // 最小25px
+            }}
+
+            tempCtx.fillStyle = '#fff';
+            tempCtx.font = `bold ${{finalFontSize}}px Microsoft YaHei`;
             tempCtx.textAlign = 'center';
             tempCtx.textBaseline = 'middle';
             tempCtx.fillText(text, tempCanvas.width / 2, tempCanvas.height / 2);
