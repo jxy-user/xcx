@@ -558,14 +558,48 @@ class BlessingConfigManager:
             return p;
         }}
 
+        // 响应式字体大小计算（确保文字不溢出屏幕）
+        function getResponsiveFontSize(text) {{
+            const canvasWidth = particleCanvas.width || window.innerWidth;
+            const canvasHeight = particleCanvas.height || window.innerHeight;
+
+            // 基础字体大小
+            let fontSize = CONFIG.FONT_SIZE;
+
+            // 根据屏幕宽度调整（手机端缩小字体）
+            if (canvasWidth < 768) {{
+                // 手机横屏：宽度有限，按比例缩放
+                // 预估每个字符约占宽度的比例
+                const charCount = text.length;
+                const estimatedCharWidth = fontSize * 0.7; // 中文字符约为字号的70%
+                const totalTextWidth = charCount * estimatedCharWidth;
+
+                // 如果文字总宽度超过屏幕80%，则缩小字体
+                if (totalTextWidth > canvasWidth * 0.8) {{
+                    fontSize = Math.floor((canvasWidth * 0.8) / (charCount * 0.7));
+                }}
+
+                // 确保字体不会太小或太大
+                fontSize = Math.max(40, Math.min(fontSize, 120));
+            }} else if (canvasWidth < 1200) {{
+                // 平板或小屏幕笔记本：适度缩小
+                fontSize = Math.min(fontSize, 160);
+            }}
+
+            return fontSize;
+        }}
+
         function getTextTargetPositions(text) {{
             const tempCanvas = document.createElement('canvas');
             const tempCtx = tempCanvas.getContext('2d');
             tempCanvas.width = particleCanvas.width;
             tempCanvas.height = particleCanvas.height;
 
+            // 使用响应式字体大小
+            const responsiveFontSize = getResponsiveFontSize(text);
+
             tempCtx.fillStyle = '#fff';
-            tempCtx.font = `bold ${{CONFIG.FONT_SIZE}}px Microsoft YaHei`;
+            tempCtx.font = `bold ${{responsiveFontSize}}px Microsoft YaHei`;
             tempCtx.textAlign = 'center';
             tempCtx.textBaseline = 'middle';
             tempCtx.fillText(text, tempCanvas.width / 2, tempCanvas.height / 2);
