@@ -9,75 +9,106 @@
         html, body { width: 100%; height: 100%; overflow: hidden; }
         body { background: #000; font-family: 'Microsoft YaHei', sans-serif; }
 
-        @media screen and (max-width: 768px) and (orientation: portrait) {
-            .landscape-overlay { display: flex; }
-            .container { display: none; }
-        }
-
-        .landscape-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .landscape-overlay img {
-            width: 120px;
-            height: 120px;
-            margin-bottom: 30px;
-            animation: rotate 2s linear infinite;
-        }
-
-        .landscape-overlay p {
-            color: #FFD700;
-            font-size: 24px;
-            text-align: center;
-            padding: 0 20px;
-        }
-
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(180deg); }
-        }
-
         #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        .container { position: relative; z-index: 10; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
-        #input-screen { text-align: center; color: #fff; padding: 20px; }
-        #input-screen h1 { font-size: clamp(28px, 6vw, 48px); margin-bottom: 30px; text-shadow: 0 0 20px rgba(255,215,0,0.8); color: #FFD700; }
-        #name-input { font-size: clamp(16px, 3vw, 24px); padding: 15px 30px; width: min(300px, 80vw); border: 2px solid #FFD700; border-radius: 10px; background: rgba(0,0,0,0.7); color: #fff; outline: none; margin-bottom: 20px; }
-        #name-input::placeholder { color: rgba(255,215,0,0.5); }
-        #start-btn { font-size: clamp(16px, 3vw, 24px); padding: 15px 40px; background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 20px rgba(255,215,0,0.4); transition: all 0.3s ease; }
-        #start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,215,0,0.6); }
         #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
         #text-display { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; justify-content: center; align-items: center; pointer-events: none; }
         #text-content { color: #FFD700; font-size: 20px; font-weight: bold; text-align: center; text-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700, 0 0 60px #FFD700; opacity: 0; transform: scale(0.1); transition: all 2s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         #control-btn { display: none; position: fixed; bottom: 20px; right: 20px; z-index: 100; padding: 12px 25px; font-size: 16px; border: none; border-radius: 25px; background: rgba(255, 215, 0, 0.9); color: #000; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.5); transition: all 0.3s ease; }
+
+        /* ============ 桌面端布局 ============ */
+        .desktop-layout {
+            display: flex;
+            position: relative;
+            z-index: 10;
+            width: 100vw;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+        }
+        .desktop-input { text-align: center; color: #fff; padding: 20px; }
+        .desktop-input h1 { font-size: clamp(28px, 6vw, 48px); margin-bottom: 30px; text-shadow: 0 0 20px rgba(255,215,0,0.8); color: #FFD700; }
+        .desktop-input input { font-size: clamp(16px, 3vw, 24px); padding: 15px 30px; width: min(300px, 80vw); border: 2px solid #FFD700; border-radius: 10px; background: rgba(0,0,0,0.7); color: #fff; outline: none; margin-bottom: 20px; }
+        .desktop-input input::placeholder { color: rgba(255,215,0,0.5); }
+        .desktop-input button { font-size: clamp(16px, 3vw, 24px); padding: 15px 40px; background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 20px rgba(255,215,0,0.4); transition: all 0.3s ease; }
+        .desktop-input button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,215,0,0.6); }
+
+        /* ============ 移动端布局 ============ */
+        .mobile-layout {
+            display: none;
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .mobile-input { text-align: center; color: #fff; }
+        .mobile-input h1 { 
+            font-size: clamp(24px, 10vw, 36px); 
+            margin-bottom: 30px; 
+            text-shadow: 0 0 20px rgba(255,215,0,0.8); 
+            color: #FFD700;
+            line-height: 1.3;
+        }
+        .mobile-input input { 
+            font-size: clamp(16px, 5vw, 20px); 
+            padding: 15px 20px; 
+            width: 100%; 
+            max-width: 280px;
+            border: 2px solid #FFD700; 
+            border-radius: 10px; 
+            background: rgba(0,0,0,0.7); 
+            color: #fff; 
+            outline: none; 
+            margin-bottom: 20px; 
+        }
+        .mobile-input input::placeholder { color: rgba(255,215,0,0.5); }
+        .mobile-input button { 
+            font-size: clamp(16px, 5vw, 20px); 
+            padding: 15px 30px; 
+            background: linear-gradient(135deg, #FFD700, #FFA500); 
+            color: #000; 
+            border: none; 
+            border-radius: 25px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            box-shadow: 0 5px 20px rgba(255,215,0,0.4); 
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        /* 移动端检测 */
+        @media screen and (max-width: 768px) {
+            .desktop-layout { display: none; }
+            .mobile-layout { display: flex; }
+            #control-btn { font-size: 14px; padding: 10px 20px; bottom: 15px; right: 15px; }
+        }
     </style>
 </head>
 <body>
-    <div class="landscape-overlay">
-        <svg viewBox="0 0 24 24" fill="#FFD700" width="120" height="120">
-            <path d="M3 4h18v16H3V4zm2 2v12h14V6H5zm2 2h10v8H7V8z"/>
-            <path d="M6 16l4-4-4-4v8z" fill="#000"/>
-        </svg>
-        <p>请将手机横屏观看</p>
-    </div>
     <canvas id="matrix-canvas"></canvas>
     <canvas id="particle-canvas"></canvas>
     <div id="text-display"><div id="text-content"></div></div>
     <button id="control-btn">停止播放</button>
-    <div class="container">
-        <div id="input-screen">
+
+    <!-- 桌面端模块 -->
+    <div class="desktop-layout" id="desktop-screen">
+        <div class="desktop-input">
             <h1>✨ JXY的高考祝福 ✨</h1>
-            <input type="text" id="name-input" placeholder="请输入你的名字"><br>
-            <button id="start-btn">开始播放</button>
+            <input type="text" id="desktop-name" placeholder="请输入你的名字"><br>
+            <button id="desktop-start">开始播放</button>
+        </div>
+    </div>
+
+    <!-- 移动端模块 -->
+    <div class="mobile-layout" id="mobile-screen">
+        <div class="mobile-input">
+            <h1>✨ JXY的高考祝福 ✨</h1>
+            <input type="text" id="mobile-name" placeholder="请输入你的名字"><br>
+            <button id="mobile-start">开始播放</button>
         </div>
     </div>
 
@@ -92,9 +123,6 @@
             EXPLODE_FORCE_MIN: 15,
             EXPLODE_FORCE_MAX: 30,
             AIR_RESISTANCE: 0.985,
-            REFORM_EASE_FACTOR: 0.04,
-            EXPLODE_START: 0,
-            REFORM_START: 0.35,
             FONT_SIZE: 200
         };
 
@@ -167,9 +195,14 @@
             animationId: null,
             hasAssignedTargets: false,
             canvasWidth: 0,
-            canvasHeight: 0
+            canvasHeight: 0,
+            isMobile: false
         };
 
+        // 检测是否为移动端
+        state.isMobile = window.innerWidth <= 768;
+
+        // ============ 矩阵雨背景 ============
         const matrixCanvas = document.getElementById('matrix-canvas');
         const matrixCtx = matrixCanvas.getContext('2d');
         const chars = '金榜题名前程似锦梦想成真学业有成鹏程万里一帆风顺万事如意心想事成成功胜利努力奋斗拼搏坚持加油未来可期';
@@ -177,13 +210,9 @@
         let drops = [];
 
         function initMatrix() {
-            let cw, ch;
-            const sw = window.innerWidth, sh = window.innerHeight;
-            const isMP = sw < 768 && sh > sw;
-            if (isMP) { cw = sh; ch = sw; } else { cw = sw; ch = sh; }
-            matrixCanvas.width = cw;
-            matrixCanvas.height = ch;
-            drops = Array.from({length: Math.floor(cw / fontSize_m)}, () => Math.random() * -100);
+            matrixCanvas.width = window.innerWidth;
+            matrixCanvas.height = window.innerHeight;
+            drops = Array.from({length: Math.floor(matrixCanvas.width / fontSize_m)}, () => Math.random() * -100);
         }
 
         function drawMatrix() {
@@ -205,18 +234,15 @@
             requestAnimationFrame(matrixLoop);
         }
 
+        // ============ 粒子系统 ============
         const particleCanvas = document.getElementById('particle-canvas');
         const particleCtx = particleCanvas.getContext('2d');
 
         function initParticleCanvas() {
-            let cw, ch;
-            const sw = window.innerWidth, sh = window.innerHeight;
-            const isMP = sw < 768 && sh > sw;
-            if (isMP) { cw = sh; ch = sw; } else { cw = sw; ch = sh; }
-            particleCanvas.width = cw;
-            particleCanvas.height = ch;
-            state.canvasWidth = cw;
-            state.canvasHeight = ch;
+            particleCanvas.width = window.innerWidth;
+            particleCanvas.height = window.innerHeight;
+            state.canvasWidth = particleCanvas.width;
+            state.canvasHeight = particleCanvas.height;
         }
 
         class Particle {
@@ -313,31 +339,35 @@
         }
 
         function getResponsiveFontSize(text) {
-            let dw, dh;
-            const sw = window.innerWidth, sh = window.innerHeight;
-            const isMP = sw < 768 && sh > sw;
-            if (isMP) { dw = sh; dh = sw; } else { dw = sw; dh = sh; }
-
+            const dw = window.innerWidth;
+            const dh = window.innerHeight;
+            
             let fs = CONFIG.FONT_SIZE;
             const isMobile = dw < 1024;
+            
             if (isMobile) {
                 const cc = text.length;
                 const mw = dw * 0.9, mh = dh * 0.6;
                 let fsw, fsh;
+                
                 if (cc <= 2) { fsw = Math.floor(mw / (cc * 0.8)); fsh = Math.floor(mh); }
                 else if (cc <= 4) { fsw = Math.floor(mw / (cc * 0.75)); fsh = Math.floor(mh); }
                 else if (cc <= 6) { fsw = Math.floor(mw / (cc * 0.7)); fsh = Math.floor(mh * 0.9); }
                 else { fsw = Math.floor(mw / (cc * 0.65)); fsh = Math.floor(mh * 0.8); }
+                
                 fs = Math.min(fsw, fsh, fs);
                 const md = Math.min(dw, dh);
+                
                 if (cc <= 2) fs = Math.min(fs, Math.floor(md * 0.45));
                 else if (cc <= 4) fs = Math.min(fs, Math.floor(md * 0.35));
                 else if (cc <= 6) fs = Math.min(fs, Math.floor(md * 0.28));
                 else fs = Math.min(fs, Math.floor(md * 0.22));
+                
                 fs = Math.max(40, Math.min(fs, 120));
             } else if (dw < 1400) {
                 fs = Math.min(fs, 160);
             }
+            
             return fs;
         }
 
@@ -346,27 +376,33 @@
             const tctx = tc.getContext('2d');
             tc.width = particleCanvas.width;
             tc.height = particleCanvas.height;
+            
             const rfs = getResponsiveFontSize(text);
             tctx.font = 'bold ' + rfs + 'px Microsoft YaHei';
             const mw = tctx.measureText(text).width;
             let ffs = rfs;
+            
             if (mw > particleCanvas.width * 0.85) {
                 ffs = Math.floor(rfs * (particleCanvas.width * 0.85) / mw);
                 ffs = Math.max(25, ffs);
             }
+            
             tctx.fillStyle = '#fff';
             tctx.font = 'bold ' + ffs + 'px Microsoft YaHei';
             tctx.textAlign = 'center';
             tctx.textBaseline = 'middle';
             tctx.fillText(text, tc.width / 2, tc.height / 2);
+            
             const idata = tctx.getImageData(0, 0, tc.width, tc.height);
             const data = idata.data;
             const positions = [];
+            
             for (let y = 0; y < tc.height; y += CONFIG.SAMPLE_INTERVAL) {
                 for (let x = 0; x < tc.width; x += CONFIG.SAMPLE_INTERVAL) {
                     if (data[(y * tc.width + x) * 4 + 3] > 128) positions.push({x: x, y: y});
                 }
             }
+            
             return positions;
         }
 
@@ -375,6 +411,7 @@
             const cc = currentParticles.length, tc = targetPositions.length;
             const result = {used: [], extras: []};
             const usedTargets = new Set();
+            
             currentParticles.forEach((p, idx) => {
                 let ti;
                 if (cc <= tc) {
@@ -388,14 +425,17 @@
                 usedTargets.add(ti);
                 result.used.push(idx);
             });
+            
             for (let i = 0; i < tc; i++) {
                 if (!usedTargets.has(i)) result.extras.push(targetPositions[i]);
             }
+            
             return result;
         }
 
         function animate(timestamp) {
             particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+            
             if (!state.isPlaying || state.phase === 'idle') {
                 state.animationId = requestAnimationFrame(animate);
                 return;
@@ -412,7 +452,8 @@
             } else if (state.phase === 'transition') {
                 const elapsed = timestamp - state.transitionStartTime;
                 const progress = Math.min(1, elapsed / CONFIG.TRANSITION_DURATION);
-                if (progress < CONFIG.REFORM_START) {
+                
+                if (progress < 0.35) {
                     state.particles.forEach(p => {
                         if (p.state === 'stable') p.explode();
                         p.update(progress);
@@ -426,6 +467,7 @@
                     }
                     [...state.particles, ...state.extraParticles].forEach(p => { p.update(progress); p.draw(1); });
                 }
+                
                 if (progress >= 1) {
                     state.particles = [...state.particles.filter(p => !p.isExtra), ...state.extraParticles];
                     state.extraParticles = [];
@@ -436,6 +478,7 @@
                     state.displayStartTime = timestamp;
                 }
             }
+            
             state.animationId = requestAnimationFrame(animate);
         }
 
@@ -469,23 +512,30 @@
             state.particles = [];
             state.isPlaying = true;
             state.phase = 'idle';
+            
             const countdowns = ['3', '2', '1'];
             const blessings = customBlessings || DEFAULT_BLESSINGS;
             const sequence = [...countdowns, ...blessings];
+            
             for (let i = 0; i < sequence.length; i++) {
                 const text = sequence[i];
                 state.currentText = text;
                 state.targetPositions = getTextTargetPositions(text);
+                
                 if (i === 0) state.particles = state.targetPositions.map(pos => new Particle(pos.x, pos.y));
+                
                 state.phase = 'display';
                 state.displayStartTime = performance.now();
                 state.nextText = null;
+                
                 await showText(text);
+                
                 if (i < sequence.length - 1) {
                     await transitionTo(sequence[i+1]);
                     state.phase = 'transition';
                     state.transitionStartTime = performance.now();
                     state.hasAssignedTargets = false;
+                    
                     await new Promise(resolve => {
                         const check = () => {
                             if (state.phase === 'display') resolve();
@@ -495,6 +545,7 @@
                     });
                 }
             }
+            
             state.isPlaying = false;
             state.phase = 'idle';
         }
@@ -517,6 +568,7 @@
         async function playTextScaleAnimation(userName, blessings) {
             const td = document.getElementById('text-display'), tc = document.getElementById('text-content');
             td.style.display = 'flex';
+            
             for (let i = 0; i < blessings.length; i++) {
                 await showScalingText(tc, blessings[i]);
                 if (i < blessings.length - 1) {
@@ -524,6 +576,7 @@
                     await new Promise(r => setTimeout(r, 300));
                 }
             }
+            
             await new Promise(r => setTimeout(r, 1500));
             await hideScalingText(tc);
         }
@@ -532,11 +585,17 @@
             const cfg = PERSONALIZED_CONFIG[userName];
             const usePA = cfg && cfg['use_particle_animation'];
             const blessings = cfg ? cfg['blessings'] : DEFAULT_BLESSINGS;
-            document.getElementById('input-screen').style.display = 'none';
+
+            // 隐藏输入界面
+            document.getElementById('desktop-screen').style.display = 'none';
+            document.getElementById('mobile-screen').style.display = 'none';
             document.getElementById('control-btn').style.display = 'block';
+
             if (!state.animationId) animate(performance.now());
+            
             if (usePA) await playParticleAnimation(userName, blessings);
             else await playTextScaleAnimation(userName, blessings);
+            
             stopAnimation();
         }
 
@@ -549,17 +608,27 @@
         function stopAnimation() {
             state.isPlaying = false;
             state.phase = 'idle';
+            
             if (state.animationId) {
                 cancelAnimationFrame(state.animationId);
                 state.animationId = null;
             }
+            
             particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
             state.particles = [];
             state.targetPositions = [];
             state.extraParticles = [];
+            
             const td = document.getElementById('text-display');
             if (td) td.style.display = 'none';
-            document.getElementById('input-screen').style.display = 'flex';
+
+            // 显示输入界面
+            if (state.isMobile) {
+                document.getElementById('mobile-screen').style.display = 'flex';
+            } else {
+                document.getElementById('desktop-screen').style.display = 'flex';
+            }
+            
             document.getElementById('control-btn').style.display = 'none';
         }
 
@@ -569,24 +638,41 @@
             requestAnimationFrame(matrixLoop);
             animate(performance.now());
 
-            const startBtn = document.getElementById('start-btn');
-            const nameInput = document.getElementById('name-input');
-            const controlBtn = document.getElementById('control-btn');
-
-            startBtn.addEventListener('click', () => {
-                const name = nameInput.value.trim();
+            // 桌面端事件
+            const desktopBtn = document.getElementById('desktop-start');
+            const desktopInput = document.getElementById('desktop-name');
+            
+            desktopBtn.addEventListener('click', () => {
+                const name = desktopInput.value.trim();
                 if (name) startAnimation(name);
             });
 
-            nameInput.addEventListener('keypress', e => {
-                if (e.key === 'Enter') startBtn.click();
+            desktopInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') desktopBtn.click();
             });
 
+            // 移动端事件
+            const mobileBtn = document.getElementById('mobile-start');
+            const mobileInput = document.getElementById('mobile-name');
+            
+            mobileBtn.addEventListener('click', () => {
+                const name = mobileInput.value.trim();
+                if (name) startAnimation(name);
+            });
+
+            mobileInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') mobileBtn.click();
+            });
+
+            // 控制按钮
+            const controlBtn = document.getElementById('control-btn');
             controlBtn.addEventListener('click', () => stopAnimation());
 
+            // 窗口大小变化
             window.addEventListener('resize', () => {
-                if (state.isPlaying) initParticleCanvas();
+                state.isMobile = window.innerWidth <= 768;
                 initMatrix();
+                if (state.isPlaying) initParticleCanvas();
             });
         });
     </script>
