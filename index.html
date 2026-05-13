@@ -8,12 +8,12 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; overflow: hidden; }
         body { background: #000; font-family: 'Microsoft YaHei', sans-serif; }
-        
+
         @media screen and (max-width: 768px) and (orientation: portrait) {
             body { transform: rotate(90deg); transform-origin: center center; position: fixed; top: 0; left: 0; }
             html { transform: rotate(90deg); transform-origin: center center; }
         }
-        
+
         #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
         .container { position: relative; z-index: 10; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
         #input-screen { text-align: center; color: #fff; padding: 20px; }
@@ -181,13 +181,19 @@
 
         class Particle {
             constructor(x, y, isNew = false) {
-                this.x = x; this.y = y; this.originX = x; this.originY = y;
-                this.targetX = x; this.targetY = y;
+                this.x = x;
+                this.y = y;
+                this.originX = x;
+                this.originY = y;
+                this.targetX = x;
+                this.targetY = y;
                 this.size = CONFIG.PARTICLE_SIZE + (Math.random() - 0.5) * 2;
                 this.brightness = 0.8 + Math.random() * 0.2;
-                this.vx = 0; this.vy = 0;
+                this.vx = 0;
+                this.vy = 0;
                 this.state = isNew ? 'entering' : 'stable';
-                this.life = isNew ? 0 : 1; this.isExtra = isNew;
+                this.life = isNew ? 0 : 1;
+                this.isExtra = isNew;
             }
 
             explode() {
@@ -201,7 +207,8 @@
             }
 
             setTarget(x, y) {
-                this.targetX = x; this.targetY = y;
+                this.targetX = x;
+                this.targetY = y;
                 if (this.state === 'exploding' || this.state === 'entering') this.state = 'reforming';
             }
 
@@ -213,15 +220,24 @@
                         this.y = this.originY + Math.cos(time + this.originX * 0.01) * 0.5;
                         break;
                     case 'exploding':
-                        this.x += this.vx; this.y += this.vy;
-                        this.vx *= CONFIG.AIR_RESISTANCE; this.vy *= CONFIG.AIR_RESISTANCE;
+                        this.x += this.vx;
+                        this.y += this.vy;
+                        this.vx *= CONFIG.AIR_RESISTANCE;
+                        this.vy *= CONFIG.AIR_RESISTANCE;
                         this.life = Math.max(0.4, 1 - progress * 0.35);
                         break;
                     case 'reforming':
-                        const dx = this.targetX - this.x, dy = this.targetY - this.y;
+                        const dx = this.targetX - this.x;
+                        const dy = this.targetY - this.y;
                         const dist = Math.sqrt(dx*dx + dy*dy);
-                        if (dist > 2) { this.x += dx * 0.055; this.y += dy * 0.055; }
-                        else if (this.state === 'reforming') { this.state = 'stable'; this.originX = this.x; this.originY = this.y; }
+                        if (dist > 2) {
+                            this.x += dx * 0.055;
+                            this.y += dy * 0.055;
+                        } else if (this.state === 'reforming') {
+                            this.state = 'stable';
+                            this.originX = this.x;
+                            this.originY = this.y;
+                        }
                         this.life += (1 - this.life) * 0.1;
                         break;
                     case 'entering':
@@ -235,8 +251,11 @@
                 particleCtx.save();
                 particleCtx.globalAlpha = alpha * this.life * this.brightness;
                 particleCtx.fillStyle = '#fff';
-                particleCtx.shadowBlur = 8; particleCtx.shadowColor = '#fff';
-                particleCtx.beginPath(); particleCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2); particleCtx.fill();
+                particleCtx.shadowBlur = 8;
+                particleCtx.shadowColor = '#fff';
+                particleCtx.beginPath();
+                particleCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                particleCtx.fill();
                 particleCtx.restore();
             }
         }
@@ -248,7 +267,9 @@
             else if (side === 1) { x = state.canvasWidth + 50 + Math.random() * 100; y = Math.random() * state.canvasHeight; }
             else if (side === 2) { x = Math.random() * state.canvasWidth; y = state.canvasHeight + 50 + Math.random() * 100; }
             else { x = -50 - Math.random() * 100; y = Math.random() * state.canvasHeight; }
-            const p = new Particle(x, y, true); p.setTarget(tx, ty); return p;
+            const p = new Particle(x, y, true);
+            p.setTarget(tx, ty);
+            return p;
         }
 
         function getResponsiveFontSize(text) {
@@ -256,7 +277,7 @@
             const sw = window.innerWidth, sh = window.innerHeight;
             const isMP = sw < 768 && sh > sw;
             if (isMP) { dw = sh; dh = sw; } else { dw = sw; dh = sh; }
-            
+
             let fs = CONFIG.FONT_SIZE;
             const isMobile = dw < 1024;
             if (isMobile) {
@@ -274,14 +295,17 @@
                 else if (cc <= 6) fs = Math.min(fs, Math.floor(md * 0.28));
                 else fs = Math.min(fs, Math.floor(md * 0.22));
                 fs = Math.max(40, Math.min(fs, 120));
-            } else if (dw < 1400) { fs = Math.min(fs, 160); }
+            } else if (dw < 1400) {
+                fs = Math.min(fs, 160);
+            }
             return fs;
         }
 
         function getTextTargetPositions(text) {
             const tc = document.createElement('canvas');
             const tctx = tc.getContext('2d');
-            tc.width = particleCanvas.width; tc.height = particleCanvas.height;
+            tc.width = particleCanvas.width;
+            tc.height = particleCanvas.height;
             const rfs = getResponsiveFontSize(text);
             tctx.font = 'bold ' + rfs + 'px Microsoft YaHei';
             const mw = tctx.measureText(text).width;
@@ -292,14 +316,17 @@
             }
             tctx.fillStyle = '#fff';
             tctx.font = 'bold ' + ffs + 'px Microsoft YaHei';
-            tctx.textAlign = 'center'; tctx.textBaseline = 'middle';
+            tctx.textAlign = 'center';
+            tctx.textBaseline = 'middle';
             tctx.fillText(text, tc.width / 2, tc.height / 2);
             const idata = tctx.getImageData(0, 0, tc.width, tc.height);
             const data = idata.data;
             const positions = [];
-            for (let y = 0; y < tc.height; y += CONFIG.SAMPLE_INTERVAL)
-                for (let x = 0; x < tc.width; x += CONFIG.SAMPLE_INTERVAL)
-                    if (data[(y * tc.width + x) * 4 + 3] > 128) positions.push({x, y});
+            for (let y = 0; y < tc.height; y += CONFIG.SAMPLE_INTERVAL) {
+                for (let x = 0; x < tc.width; x += CONFIG.SAMPLE_INTERVAL) {
+                    if (data[(y * tc.width + x) * 4 + 3] > 128) positions.push({x: x, y: y});
+                }
+            }
             return positions;
         }
 
@@ -310,31 +337,47 @@
             const usedTargets = new Set();
             currentParticles.forEach((p, idx) => {
                 let ti;
-                if (cc <= tc) { ti = Math.floor((idx / cc) * tc); ti = (ti + Math.floor(Math.random() * 3)) % tc; }
-                else { ti = idx % tc; if (Math.random() > 0.7) ti = Math.floor(Math.random() * tc); }
+                if (cc <= tc) {
+                    ti = Math.floor((idx / cc) * tc);
+                    ti = (ti + Math.floor(Math.random() * 3)) % tc;
+                } else {
+                    ti = idx % tc;
+                    if (Math.random() > 0.7) ti = Math.floor(Math.random() * tc);
+                }
                 p.setTarget(targetPositions[ti].x, targetPositions[ti].y);
-                usedTargets.add(ti); result.used.push(idx);
+                usedTargets.add(ti);
+                result.used.push(idx);
             });
-            for (let i = 0; i < tc; i++) if (!usedTargets.has(i)) result.extras.push(targetPositions[i]);
+            for (let i = 0; i < tc; i++) {
+                if (!usedTargets.has(i)) result.extras.push(targetPositions[i]);
+            }
             return result;
         }
 
         function animate(timestamp) {
             particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
-            if (!state.isPlaying || state.phase === 'idle') { state.animationId = requestAnimationFrame(animate); return; }
+            if (!state.isPlaying || state.phase === 'idle') {
+                state.animationId = requestAnimationFrame(animate);
+                return;
+            }
 
             if (state.phase === 'display') {
                 if (state.particles.length) state.particles.forEach(p => { p.update(); p.draw(1); });
                 const elapsed = timestamp - state.displayStartTime;
                 if (elapsed >= getDisplayTime(state.currentText) && state.nextText) {
-                    state.phase = 'transition'; state.transitionStartTime = timestamp;
+                    state.phase = 'transition';
+                    state.transitionStartTime = timestamp;
                     state.targetPositions = getTextTargetPositions(state.nextText);
                 }
             } else if (state.phase === 'transition') {
                 const elapsed = timestamp - state.transitionStartTime;
                 const progress = Math.min(1, elapsed / CONFIG.TRANSITION_DURATION);
                 if (progress < CONFIG.REFORM_START) {
-                    state.particles.forEach(p => { if (p.state === 'stable') p.explode(); p.update(progress); p.draw(1); });
+                    state.particles.forEach(p => {
+                        if (p.state === 'stable') p.explode();
+                        p.update(progress);
+                        p.draw(1);
+                    });
                 } else {
                     if (!state.hasAssignedTargets) {
                         const assignment = assignTargets(state.particles, state.targetPositions);
@@ -345,9 +388,12 @@
                 }
                 if (progress >= 1) {
                     state.particles = [...state.particles.filter(p => !p.isExtra), ...state.extraParticles];
-                    state.extraParticles = []; state.hasAssignedTargets = false;
-                    state.currentText = state.nextText; state.nextText = null;
-                    state.phase = 'display'; state.displayStartTime = timestamp;
+                    state.extraParticles = [];
+                    state.hasAssignedTargets = false;
+                    state.currentText = state.nextText;
+                    state.nextText = null;
+                    state.phase = 'display';
+                    state.displayStartTime = timestamp;
                 }
             }
             state.animationId = requestAnimationFrame(animate);
@@ -364,8 +410,12 @@
             return new Promise(resolve => {
                 const td = document.getElementById('text-display');
                 const tc = document.getElementById('text-content');
-                tc.textContent = text; td.style.display = 'flex';
-                requestAnimationFrame(() => { tc.style.opacity = '1'; tc.style.transform = 'scale(1'); });
+                tc.textContent = text;
+                td.style.display = 'flex';
+                requestAnimationFrame(() => {
+                    tc.style.opacity = '1';
+                    tc.style.transform = 'scale(1)';
+                });
                 setTimeout(() => resolve(), getDisplayTime(text));
             });
         }
@@ -375,36 +425,51 @@
         }
 
         async function playParticleAnimation(userName, customBlessings) {
-            initParticleCanvas(); state.particles = []; state.isPlaying = true; state.phase = 'idle';
+            initParticleCanvas();
+            state.particles = [];
+            state.isPlaying = true;
+            state.phase = 'idle';
             const countdowns = ['3', '2', '1'];
             const blessings = customBlessings || DEFAULT_BLESSINGS;
             const sequence = [...countdowns, ...blessings];
             for (let i = 0; i < sequence.length; i++) {
-                const text = sequence[i]; state.currentText = text;
+                const text = sequence[i];
+                state.currentText = text;
                 state.targetPositions = getTextTargetPositions(text);
                 if (i === 0) state.particles = state.targetPositions.map(pos => new Particle(pos.x, pos.y));
-                state.phase = 'display'; state.displayStartTime = performance.now(); state.nextText = null;
+                state.phase = 'display';
+                state.displayStartTime = performance.now();
+                state.nextText = null;
                 await showText(text);
                 if (i < sequence.length - 1) {
-                    await transitionTo(sequence[i+1]); state.phase = 'transition';
-                    state.transitionStartTime = performance.now(); state.hasAssignedTargets = false;
+                    await transitionTo(sequence[i+1]);
+                    state.phase = 'transition';
+                    state.transitionStartTime = performance.now();
+                    state.hasAssignedTargets = false;
                     await new Promise(resolve => {
-                        const check = () => { if (state.phase === 'display') resolve(); else requestAnimationFrame(check); };
+                        const check = () => {
+                            if (state.phase === 'display') resolve();
+                            else requestAnimationFrame(check);
+                        };
                         requestAnimationFrame(check);
                     });
                 }
             }
-            state.isPlaying = false; state.phase = 'idle';
+            state.isPlaying = false;
+            state.phase = 'idle';
         }
 
         async function showScalingText(element, text) {
-            element.textContent = text; element.style.opacity = '1'; element.style.transform = 'scale(1)';
+            element.textContent = text;
+            element.style.opacity = '1';
+            element.style.transform = 'scale(1)';
             return new Promise(resolve => setTimeout(() => resolve(), getDisplayTime(text)));
         }
 
         function hideScalingText(element) {
             return new Promise(resolve => {
-                element.style.opacity = '0'; element.style.transform = 'scale(0.1)';
+                element.style.opacity = '0';
+                element.style.transform = 'scale(0.1)';
                 setTimeout(() => { element.style.display = 'none'; resolve(); }, 500);
             });
         }
@@ -414,9 +479,13 @@
             td.style.display = 'flex';
             for (let i = 0; i < blessings.length; i++) {
                 await showScalingText(tc, blessings[i]);
-                if (i < blessings.length - 1) { await hideScalingText(tc); await new Promise(r => setTimeout(r, 300)); }
+                if (i < blessings.length - 1) {
+                    await hideScalingText(tc);
+                    await new Promise(r => setTimeout(r, 300));
+                }
             }
-            await new Promise(r => setTimeout(r, 1500)); await hideScalingText(tc);
+            await new Promise(r => setTimeout(r, 1500));
+            await hideScalingText(tc);
         }
 
         async function playSequence(userName) {
@@ -431,21 +500,34 @@
             stopAnimation();
         }
 
-        function startAnimation(userName) { if (state.isPlaying) return; state.userName = userName; playSequence(userName); }
+        function startAnimation(userName) {
+            if (state.isPlaying) return;
+            state.userName = userName;
+            playSequence(userName);
+        }
 
         function stopAnimation() {
-            state.isPlaying = false; state.phase = 'idle';
-            if (state.animationId) { cancelAnimationFrame(state.animationId); state.animationId = null; }
+            state.isPlaying = false;
+            state.phase = 'idle';
+            if (state.animationId) {
+                cancelAnimationFrame(state.animationId);
+                state.animationId = null;
+            }
             particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
-            state.particles = []; state.targetPositions = []; state.extraParticles = [];
-            const td = document.getElementById('text-display'); if (td) td.style.display = 'none';
+            state.particles = [];
+            state.targetPositions = [];
+            state.extraParticles = [];
+            const td = document.getElementById('text-display');
+            if (td) td.style.display = 'none';
             document.getElementById('input-screen').style.display = 'flex';
             document.getElementById('control-btn').style.display = 'none';
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            initMatrix(); initParticleCanvas();
-            requestAnimationFrame(matrixLoop); animate(performance.now());
+            initMatrix();
+            initParticleCanvas();
+            requestAnimationFrame(matrixLoop);
+            animate(performance.now());
 
             const startBtn = document.getElementById('start-btn');
             const nameInput = document.getElementById('name-input');
@@ -456,10 +538,16 @@
                 if (name) startAnimation(name);
             });
 
-            nameInput.addEventListener('keypress', e => { if (e.key === 'Enter') startBtn.click(); });
+            nameInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') startBtn.click();
+            });
+
             controlBtn.addEventListener('click', () => stopAnimation());
 
-            window.addEventListener('resize', () => { if (state.isPlaying) initParticleCanvas(); initMatrix(); });
+            window.addEventListener('resize', () => {
+                if (state.isPlaying) initParticleCanvas();
+                initMatrix();
+            });
         });
     </script>
 </body>
