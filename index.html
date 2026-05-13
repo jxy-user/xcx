@@ -5,185 +5,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>高考祝福</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; }
+        body { background: #000; font-family: 'Microsoft YaHei', sans-serif; }
+        
+        @media screen and (max-width: 768px) and (orientation: portrait) {
+            body { transform: rotate(90deg); transform-origin: center center; position: fixed; top: 0; left: 0; }
+            html { transform: rotate(90deg); transform-origin: center center; }
         }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        body {
-            background: #000;
-            font-family: 'Microsoft YaHei', sans-serif;
-        }
-
-        #matrix-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-
-        .container {
-            position: relative;
-            z-index: 10;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #input-screen {
-            text-align: center;
-            color: #fff;
-            padding: 20px;
-        }
-
-        #input-screen h1 {
-            font-size: clamp(28px, 6vw, 48px);
-            margin-bottom: 30px;
-            text-shadow: 0 0 20px rgba(255,215,0,0.8);
-            color: #FFD700;
-        }
-
-        #name-input {
-            font-size: clamp(16px, 3vw, 24px);
-            padding: 15px 30px;
-            width: min(300px, 80vw);
-            border: 2px solid #FFD700;
-            border-radius: 10px;
-            background: rgba(0,0,0,0.7);
-            color: #fff;
-            outline: none;
-            margin-bottom: 20px;
-        }
-
-        #name-input::placeholder {
-            color: rgba(255,215,0,0.5);
-        }
-
-        #start-btn {
-            font-size: clamp(16px, 3vw, 24px);
-            padding: 15px 50px;
-            border: none;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            color: #000;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 30px rgba(255,215,0,0.5);
-        }
-
-        #start-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 40px rgba(255,215,0,0.8);
-        }
-
-        #particle-canvas {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 5;
-            pointer-events: none;
-        }
-
-        .hidden {
-            display: none !important;
-        }
+        
+        #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .container { position: relative; z-index: 10; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }
+        #input-screen { text-align: center; color: #fff; padding: 20px; }
+        #input-screen h1 { font-size: clamp(28px, 6vw, 48px); margin-bottom: 30px; text-shadow: 0 0 20px rgba(255,215,0,0.8); color: #FFD700; }
+        #name-input { font-size: clamp(16px, 3vw, 24px); padding: 15px 30px; width: min(300px, 80vw); border: 2px solid #FFD700; border-radius: 10px; background: rgba(0,0,0,0.7); color: #fff; outline: none; margin-bottom: 20px; }
+        #name-input::placeholder { color: rgba(255,215,0,0.5); }
+        #start-btn { font-size: clamp(16px, 3vw, 24px); padding: 15px 40px; background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 20px rgba(255,215,0,0.4); transition: all 0.3s ease; }
+        #start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,215,0,0.6); }
+        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+        #text-display { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; justify-content: center; align-items: center; pointer-events: none; }
+        #text-content { color: #FFD700; font-size: 20px; font-weight: bold; text-align: center; text-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700, 0 0 60px #FFD700; opacity: 0; transform: scale(0.1); transition: all 2s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        #control-btn { display: none; position: fixed; bottom: 20px; right: 20px; z-index: 100; padding: 12px 25px; font-size: 16px; border: none; border-radius: 25px; background: rgba(255, 215, 0, 0.9); color: #000; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.5); transition: all 0.3s ease; }
     </style>
 </head>
 <body>
     <canvas id="matrix-canvas"></canvas>
     <canvas id="particle-canvas"></canvas>
-
-    <div id="text-display" style="
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 50;
-        justify-content: center;
-        align-items: center;
-        pointer-events: none;
-    ">
-        <div id="text-content" style="
-            color: #FFD700;
-            font-size: 20px;
-            font-weight: bold;
-            text-align: center;
-            text-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700, 0 0 60px #FFD700;
-            opacity: 0;
-            transform: scale(0.1);
-            transition: all 2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        "></div>
-    </div>
-
-    <button id="control-btn" style="
-        display: none;
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        z-index: 100;
-        padding: 12px 25px;
-        font-size: 16px;
-        border: none;
-        border-radius: 25px;
-        background: rgba(255, 215, 0, 0.9);
-        color: #000;
-        cursor: pointer;
-        font-weight: bold;
-        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.5);
-        transition: all 0.3s ease;
-    ">⏹️ 停止播放</button>
-
+    <div id="text-display"><div id="text-content"></div></div>
+    <button id="control-btn">停止播放</button>
     <div class="container">
         <div id="input-screen">
             <h1>✨ JXY的高考祝福 ✨</h1>
-            <input type="text" id="name-input" placeholder="请输入你的名字">
-            <br>
-            <button id="start-btn">🎬 开始播放</button>
+            <input type="text" id="name-input" placeholder="请输入你的名字"><br>
+            <button id="start-btn">开始播放</button>
         </div>
     </div>
 
     <script>
-        // ============ 全局配置 ============
         const CONFIG = {
             COUNTDOWN_TIME: 800,
             BLESSING_TIME: 2000,
             FINAL_BLESSING_TIME: 3500,
             TRANSITION_DURATION: 2500,
             PARTICLE_SIZE: 3,
-            SAMPLE_INTERVAL: 8,           // 固定采样间隔
-
-            // 全屏爆炸参数
-            EXPLODE_FORCE_MIN: 15,        // 最小爆炸力度（大幅增强）
-            EXPLODE_FORCE_MAX: 30,        // 最大爆炸力度（大幅增强）
-            AIR_RESISTANCE: 0.985,        // 更低阻力（飞得更远）
-
-            // 平稳重组参数
+            SAMPLE_INTERVAL: 8,
+            EXPLODE_FORCE_MIN: 15,
+            EXPLODE_FORCE_MAX: 30,
+            AIR_RESISTANCE: 0.985,
             REFORM_EASE_FACTOR: 0.04,
-
             EXPLODE_START: 0,
             REFORM_START: 0.35,
-
-            FONT_SIZE: 200                // 固定大字体
+            FONT_SIZE: 200
         };
 
-        // ============ 状态管理 ============
+        const PERSONALIZED_CONFIG = {
+            "赵慧敏": {
+                "use_particle_animation": true,
+                "blessings": [
+                    "加油 赵慧敏",
+                    "金榜题名",
+                    "必胜",
+                    "前程似锦",
+                    "梦想成真"
+                ]
+            },
+            "葛林轩": {
+                "use_particle_animation": false,
+                "blessings": [
+                    "祝福语1",
+                    "祝福语2",
+                    "祝福语3"
+                ]
+            },
+            "赵子杰": {
+                "use_particle_animation": false,
+                "blessings": [
+                    "祝福语1",
+                    "祝福语2",
+                    "祝福语3"
+                ]
+            },
+            "王博杰": {
+                "use_particle_animation": false,
+                "blessings": [
+                    "祝福语1",
+                    "祝福语2",
+                    "祝福语3"
+                ]
+            },
+            "李恬静": {
+                "use_particle_animation": false,
+                "blessings": [
+                    "祝福语1",
+                    "祝福语2",
+                    "祝福语3"
+                ]
+            },
+            "张琳苒": {
+                "use_particle_animation": false,
+                "blessings": [
+                    "祝福语1",
+                    "祝福语2",
+                    "祝福语3"
+                ]
+            }
+        };
+
+        const DEFAULT_BLESSINGS = ["金榜题名", "前程似锦", "梦想成真"];
+
         const state = {
             isPlaying: false,
             userName: '',
@@ -201,138 +130,100 @@
             canvasHeight: 0
         };
 
-        // ============ 矩阵雨背景 ============
         const matrixCanvas = document.getElementById('matrix-canvas');
         const matrixCtx = matrixCanvas.getContext('2d');
-
         const chars = '金榜题名前程似锦梦想成真学业有成鹏程万里一帆风顺万事如意心想事成成功胜利努力奋斗拼搏坚持加油未来可期';
-        const fontSize = 16;
+        const fontSize_m = 16;
         let drops = [];
 
         function initMatrix() {
-            matrixCanvas.width = window.innerWidth;
-            matrixCanvas.height = window.innerHeight;
-            const columns = matrixCanvas.width / fontSize;
-            drops = [];
-            for (let i = 0; i < columns; i++) {
-                drops[i] = Math.random() * -100;
-            }
+            let cw, ch;
+            const sw = window.innerWidth, sh = window.innerHeight;
+            const isMP = sw < 768 && sh > sw;
+            if (isMP) { cw = sh; ch = sw; } else { cw = sw; ch = sh; }
+            matrixCanvas.width = cw;
+            matrixCanvas.height = ch;
+            drops = Array.from({length: Math.floor(cw / fontSize_m)}, () => Math.random() * -100);
         }
 
         function drawMatrix() {
             matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.15)';
             matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
             matrixCtx.fillStyle = '#FFD700';
-            matrixCtx.font = `${fontSize}px Microsoft YaHei`;
-            matrixCtx.shadowBlur = 0;
-
+            matrixCtx.font = fontSize_m + 'px Microsoft YaHei';
             for (let i = 0; i < drops.length; i++) {
-                const char = chars[Math.floor(Math.random() * chars.length)];
-                matrixCtx.fillText(char, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
-                }
+                const c = chars[Math.floor(Math.random() * chars.length)];
+                matrixCtx.fillText(c, i * fontSize_m, drops[i] * fontSize_m);
+                if (drops[i] * fontSize_m > matrixCanvas.height && Math.random() > 0.975) drops[i] = 0;
                 drops[i]++;
             }
         }
 
         let lastMatrixTime = 0;
-        function matrixLoop(timestamp) {
-            if (timestamp - lastMatrixTime >= 50) {
-                drawMatrix();
-                lastMatrixTime = timestamp;
-            }
+        function matrixLoop(ts) {
+            if (ts - lastMatrixTime >= 50) { drawMatrix(); lastMatrixTime = ts; }
             requestAnimationFrame(matrixLoop);
         }
 
-        // ============ 粒子系统（动态数量 + 温柔效果）============
         const particleCanvas = document.getElementById('particle-canvas');
         const particleCtx = particleCanvas.getContext('2d');
 
         function initParticleCanvas() {
-            particleCanvas.width = window.innerWidth;
-            particleCanvas.height = window.innerHeight;
-            state.canvasWidth = particleCanvas.width;
-            state.canvasHeight = particleCanvas.height;
+            let cw, ch;
+            const sw = window.innerWidth, sh = window.innerHeight;
+            const isMP = sw < 768 && sh > sw;
+            if (isMP) { cw = sh; ch = sw; } else { cw = sw; ch = sh; }
+            particleCanvas.width = cw;
+            particleCanvas.height = ch;
+            state.canvasWidth = cw;
+            state.canvasHeight = ch;
         }
 
         class Particle {
             constructor(x, y, isNew = false) {
-                this.x = x;
-                this.y = y;
-                this.originX = x;
-                this.originY = y;
-                this.targetX = x;
-                this.targetY = y;
+                this.x = x; this.y = y; this.originX = x; this.originY = y;
+                this.targetX = x; this.targetY = y;
                 this.size = CONFIG.PARTICLE_SIZE + (Math.random() - 0.5) * 2;
                 this.brightness = 0.8 + Math.random() * 0.2;
-
-                this.vx = 0;
-                this.vy = 0;
-
-                // 状态: 'stable' | 'exploding' | 'reforming' | 'entering'
+                this.vx = 0; this.vy = 0;
                 this.state = isNew ? 'entering' : 'stable';
-                this.life = isNew ? 0 : 1;
-                this.isExtra = isNew;  // 是否是额外粒子
+                this.life = isNew ? 0 : 1; this.isExtra = isNew;
             }
 
             explode() {
                 if (this.state === 'stable') {
                     this.state = 'exploding';
                     const angle = Math.random() * Math.PI * 2;
-                    const force = CONFIG.EXPLODE_FORCE_MIN +
-                                   Math.random() * (CONFIG.EXPLODE_FORCE_MAX - CONFIG.EXPLODE_FORCE_MIN);
+                    const force = CONFIG.EXPLODE_FORCE_MIN + Math.random() * (CONFIG.EXPLODE_FORCE_MAX - CONFIG.EXPLODE_FORCE_MIN);
                     this.vx = Math.cos(angle) * force;
                     this.vy = Math.sin(angle) * force;
                 }
             }
 
             setTarget(x, y) {
-                this.targetX = x;
-                this.targetY = y;
-                if (this.state === 'exploding') {
-                    this.state = 'reforming';
-                } else if (this.state === 'entering') {
-                    this.state = 'reforming';
-                }
+                this.targetX = x; this.targetY = y;
+                if (this.state === 'exploding' || this.state === 'entering') this.state = 'reforming';
             }
 
             update(progress = 0) {
                 const time = Date.now() * 0.001;
-
                 switch (this.state) {
                     case 'stable':
                         this.x = this.originX + Math.sin(time + this.originY * 0.01) * 0.5;
                         this.y = this.originY + Math.cos(time + this.originX * 0.01) * 0.5;
                         break;
-
                     case 'exploding':
-                        this.x += this.vx;
-                        this.y += this.vy;
-                        this.vx *= CONFIG.AIR_RESISTANCE;
-                        this.vy *= CONFIG.AIR_RESISTANCE;
+                        this.x += this.vx; this.y += this.vy;
+                        this.vx *= CONFIG.AIR_RESISTANCE; this.vy *= CONFIG.AIR_RESISTANCE;
                         this.life = Math.max(0.4, 1 - progress * 0.35);
                         break;
-
                     case 'reforming':
-                        const dx = this.targetX - this.x;
-                        const dy = this.targetY - this.y;
-                        const distance = Math.sqrt(dx * dx + dy * dy);
-
-                        if (distance > 2) {
-                            const moveRatio = 0.055;
-                            this.x += dx * moveRatio;
-                            this.y += dy * moveRatio;
-                        } else if (this.state === 'reforming') {
-                            this.state = 'stable';
-                            this.originX = this.x;
-                            this.originY = this.y;
-                        }
-
-                        const targetLife = 1;
-                        this.life += (targetLife - this.life) * 0.1;
+                        const dx = this.targetX - this.x, dy = this.targetY - this.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist > 2) { this.x += dx * 0.055; this.y += dy * 0.055; }
+                        else if (this.state === 'reforming') { this.state = 'stable'; this.originX = this.x; this.originY = this.y; }
+                        this.life += (1 - this.life) * 0.1;
                         break;
-
                     case 'entering':
                         this.life = Math.min(1, this.life + 0.03);
                         break;
@@ -341,479 +232,235 @@
 
             draw(alpha = 1) {
                 if (this.life <= 0) return;
-                
                 particleCtx.save();
                 particleCtx.globalAlpha = alpha * this.life * this.brightness;
                 particleCtx.fillStyle = '#fff';
-                particleCtx.shadowBlur = 8;
-                particleCtx.shadowColor = '#fff';
-                particleCtx.beginPath();
-                particleCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                particleCtx.fill();
+                particleCtx.shadowBlur = 8; particleCtx.shadowColor = '#fff';
+                particleCtx.beginPath(); particleCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2); particleCtx.fill();
                 particleCtx.restore();
             }
         }
 
-        // 从屏幕外创建新粒子
-        function createParticleFromOutside(targetX, targetY) {
-            const side = Math.floor(Math.random() * 4);  // 0:上 1:右 2:下 3:左
+        function createParticleFromOutside(tx, ty) {
+            const side = Math.floor(Math.random() * 4);
             let x, y;
-            
-            switch (side) {
-                case 0:  // 从上方进入
-                    x = Math.random() * state.canvasWidth;
-                    y = -50 - Math.random() * 100;
-                    break;
-                case 1:  // 从右方进入
-                    x = state.canvasWidth + 50 + Math.random() * 100;
-                    y = Math.random() * state.canvasHeight;
-                    break;
-                case 2:  // 从下方进入
-                    x = Math.random() * state.canvasWidth;
-                    y = state.canvasHeight + 50 + Math.random() * 100;
-                    break;
-                case 3:  // 从左方进入
-                    x = -50 - Math.random() * 100;
-                    y = Math.random() * state.canvasHeight;
-                    break;
-            }
-            
-            const p = new Particle(x, y, true);
-            p.setTarget(targetX, targetY);
-            return p;
+            if (side === 0) { x = Math.random() * state.canvasWidth; y = -50 - Math.random() * 100; }
+            else if (side === 1) { x = state.canvasWidth + 50 + Math.random() * 100; y = Math.random() * state.canvasHeight; }
+            else if (side === 2) { x = Math.random() * state.canvasWidth; y = state.canvasHeight + 50 + Math.random() * 100; }
+            else { x = -50 - Math.random() * 100; y = Math.random() * state.canvasHeight; }
+            const p = new Particle(x, y, true); p.setTarget(tx, ty); return p;
         }
 
-        // 获取文字的目标位置点
+        function getResponsiveFontSize(text) {
+            let dw, dh;
+            const sw = window.innerWidth, sh = window.innerHeight;
+            const isMP = sw < 768 && sh > sw;
+            if (isMP) { dw = sh; dh = sw; } else { dw = sw; dh = sh; }
+            
+            let fs = CONFIG.FONT_SIZE;
+            const isMobile = dw < 1024;
+            if (isMobile) {
+                const cc = text.length;
+                const mw = dw * 0.9, mh = dh * 0.6;
+                let fsw, fsh;
+                if (cc <= 2) { fsw = Math.floor(mw / (cc * 0.8)); fsh = Math.floor(mh); }
+                else if (cc <= 4) { fsw = Math.floor(mw / (cc * 0.75)); fsh = Math.floor(mh); }
+                else if (cc <= 6) { fsw = Math.floor(mw / (cc * 0.7)); fsh = Math.floor(mh * 0.9); }
+                else { fsw = Math.floor(mw / (cc * 0.65)); fsh = Math.floor(mh * 0.8); }
+                fs = Math.min(fsw, fsh, fs);
+                const md = Math.min(dw, dh);
+                if (cc <= 2) fs = Math.min(fs, Math.floor(md * 0.45));
+                else if (cc <= 4) fs = Math.min(fs, Math.floor(md * 0.35));
+                else if (cc <= 6) fs = Math.min(fs, Math.floor(md * 0.28));
+                else fs = Math.min(fs, Math.floor(md * 0.22));
+                fs = Math.max(40, Math.min(fs, 120));
+            } else if (dw < 1400) { fs = Math.min(fs, 160); }
+            return fs;
+        }
+
         function getTextTargetPositions(text) {
-            const tempCanvas = document.createElement('canvas');
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCanvas.width = particleCanvas.width;
-            tempCanvas.height = particleCanvas.height;
-
-            tempCtx.fillStyle = '#fff';
-            tempCtx.font = `bold ${CONFIG.FONT_SIZE}px Microsoft YaHei`;
-            tempCtx.textAlign = 'center';
-            tempCtx.textBaseline = 'middle';
-            tempCtx.fillText(text, tempCanvas.width / 2, tempCanvas.height / 2);
-
-            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-            const data = imageData.data;
-            const positions = [];
-
-            for (let y = 0; y < tempCanvas.height; y += CONFIG.SAMPLE_INTERVAL) {
-                for (let x = 0; x < tempCanvas.width; x += CONFIG.SAMPLE_INTERVAL) {
-                    const index = (y * tempCanvas.width + x) * 4;
-                    if (data[index + 3] > 128) {
-                        positions.push({ x, y });
-                    }
-                }
+            const tc = document.createElement('canvas');
+            const tctx = tc.getContext('2d');
+            tc.width = particleCanvas.width; tc.height = particleCanvas.height;
+            const rfs = getResponsiveFontSize(text);
+            tctx.font = 'bold ' + rfs + 'px Microsoft YaHei';
+            const mw = tctx.measureText(text).width;
+            let ffs = rfs;
+            if (mw > particleCanvas.width * 0.85) {
+                ffs = Math.floor(rfs * (particleCanvas.width * 0.85) / mw);
+                ffs = Math.max(25, ffs);
             }
-
+            tctx.fillStyle = '#fff';
+            tctx.font = 'bold ' + ffs + 'px Microsoft YaHei';
+            tctx.textAlign = 'center'; tctx.textBaseline = 'middle';
+            tctx.fillText(text, tc.width / 2, tc.height / 2);
+            const idata = tctx.getImageData(0, 0, tc.width, tc.height);
+            const data = idata.data;
+            const positions = [];
+            for (let y = 0; y < tc.height; y += CONFIG.SAMPLE_INTERVAL)
+                for (let x = 0; x < tc.width; x += CONFIG.SAMPLE_INTERVAL)
+                    if (data[(y * tc.width + x) * 4 + 3] > 128) positions.push({x, y});
             return positions;
         }
 
-        // 分配目标位置（处理粒子数量变化）
         function assignTargets(currentParticles, targetPositions) {
-            if (targetPositions.length === 0) return { used: [], extras: [] };
-
-            const currentCount = currentParticles.length;
-            const targetCount = targetPositions.length;
-            const result = {
-                used: [],      // 被分配目标的现有粒子索引
-                extras: []     // 需要从外部拉取的新目标位置
-            };
-
-            // 标记哪些目标位置已被使用
+            if (!targetPositions.length) return {used: [], extras: []};
+            const cc = currentParticles.length, tc = targetPositions.length;
+            const result = {used: [], extras: []};
             const usedTargets = new Set();
-
-            // 为现有粒子分配目标
-            currentParticles.forEach((particle, index) => {
-                let targetIndex;
-                
-                if (currentCount <= targetCount) {
-                    // 现有粒子少，目标多：均匀分配
-                    targetIndex = Math.floor((index / currentCount) * targetCount);
-                    targetIndex = (targetIndex + Math.floor(Math.random() * 3)) % targetCount;
-                } else {
-                    // 现有粒子多，目标少：多个粒子可去同一目标
-                    targetIndex = index % targetCount;
-                    if (Math.random() > 0.7) {
-                        targetIndex = Math.floor(Math.random() * targetCount);
-                    }
-                }
-
-                const target = targetPositions[targetIndex];
-                particle.setTarget(target.x, target.y);
-                usedTargets.add(targetIndex);
-                result.used.push(index);
+            currentParticles.forEach((p, idx) => {
+                let ti;
+                if (cc <= tc) { ti = Math.floor((idx / cc) * tc); ti = (ti + Math.floor(Math.random() * 3)) % tc; }
+                else { ti = idx % tc; if (Math.random() > 0.7) ti = Math.floor(Math.random() * tc); }
+                p.setTarget(targetPositions[ti].x, targetPositions[ti].y);
+                usedTargets.add(ti); result.used.push(idx);
             });
-
-            // 收集未被使用的目标位置（需要额外粒子）
-            for (let i = 0; i < targetCount; i++) {
-                if (!usedTargets.has(i)) {
-                    result.extras.push(targetPositions[i]);
-                }
-            }
-
+            for (let i = 0; i < tc; i++) if (!usedTargets.has(i)) result.extras.push(targetPositions[i]);
             return result;
         }
 
-        // ============ 动画主循环 ============
         function animate(timestamp) {
             particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
-
-            if (!state.isPlaying || state.phase === 'idle') {
-                state.animationId = requestAnimationFrame(animate);
-                return;
-            }
+            if (!state.isPlaying || state.phase === 'idle') { state.animationId = requestAnimationFrame(animate); return; }
 
             if (state.phase === 'display') {
-                if (state.particles.length > 0) {
-                    state.particles.forEach(p => {
-                        p.update();
-                        p.draw(1);
-                    });
-                }
-
+                if (state.particles.length) state.particles.forEach(p => { p.update(); p.draw(1); });
                 const elapsed = timestamp - state.displayStartTime;
-                const displayTime = getDisplayTime(state.currentText);
-
-                if (elapsed >= displayTime && state.nextText) {
-                    state.phase = 'transition';
-                    state.transitionStartTime = timestamp;
+                if (elapsed >= getDisplayTime(state.currentText) && state.nextText) {
+                    state.phase = 'transition'; state.transitionStartTime = timestamp;
                     state.targetPositions = getTextTargetPositions(state.nextText);
                 }
-
             } else if (state.phase === 'transition') {
                 const elapsed = timestamp - state.transitionStartTime;
                 const progress = Math.min(1, elapsed / CONFIG.TRANSITION_DURATION);
-
-                // 阶段1：爆炸 (0% - 30%)
                 if (progress < CONFIG.REFORM_START) {
-                    state.particles.forEach(p => {
-                        if (p.state === 'stable') {
-                            p.explode();
-                        }
-                        p.update(progress);
-                        p.draw(1);
-                    });
-                }
-
-                // 阶段2：重组 + 拉取新粒子 (30% - 100%)
-                else {
-                    // 首次进入重组阶段
+                    state.particles.forEach(p => { if (p.state === 'stable') p.explode(); p.update(progress); p.draw(1); });
+                } else {
                     if (!state.hasAssignedTargets) {
                         const assignment = assignTargets(state.particles, state.targetPositions);
-                        
-                        // 创建额外粒子（从屏幕外拉取）
-                        state.extraParticles = assignment.extras.map(pos => 
-                            createParticleFromOutside(pos.x, pos.y)
-                        );
-                        
+                        state.extraParticles = assignment.extras.map(pos => createParticleFromOutside(pos.x, pos.y));
                         state.hasAssignedTargets = true;
                     }
-
-                    // 更新所有粒子
-                    state.particles.forEach(p => {
-                        p.update(progress);
-                        p.draw(1);
-                    });
-
-                    // 更新额外粒子
-                    state.extraParticles.forEach(p => {
-                        p.update(progress);
-                        p.draw(1);
-                    });
+                    [...state.particles, ...state.extraParticles].forEach(p => { p.update(progress); p.draw(1); });
                 }
-
-                // 过渡完成
                 if (progress >= 1) {
-                    const allParticles = [...state.particles, ...state.extraParticles];
-
-                    allParticles.forEach(p => {
-                        if (p.state === 'reforming') {
-                            p.state = 'stable';
-                            p.originX = p.targetX;
-                            p.originY = p.targetY;
-                        }
-                        p.isExtra = false;
-                    });
-
-                    state.particles = allParticles;
-                    state.currentText = state.nextText;
-                    state.nextText = '';
-                    state.targetPositions = [];
-                    state.extraParticles = [];
-                    state.hasAssignedTargets = false;
-                    state.phase = 'display';
-                    state.displayStartTime = timestamp;
-
-                    if (window._onTransitionComplete) {
-                        window._onTransitionComplete();
-                        window._onTransitionComplete = null;
-                    }
+                    state.particles = [...state.particles.filter(p => !p.isExtra), ...state.extraParticles];
+                    state.extraParticles = []; state.hasAssignedTargets = false;
+                    state.currentText = state.nextText; state.nextText = null;
+                    state.phase = 'display'; state.displayStartTime = timestamp;
                 }
             }
-
             state.animationId = requestAnimationFrame(animate);
         }
 
-        function easeInOutCubic(t) {
-            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        }
-
         function getDisplayTime(text) {
-            const countdownNumbers = ['3', '2', '1'];
-            if (countdownNumbers.includes(text)) {
-                return CONFIG.COUNTDOWN_TIME;
-            }
-            return CONFIG.BLESSING_TIME;
+            const len = text.length;
+            if (len <= 3) return CONFIG.COUNTDOWN_TIME;
+            if (len <= 6) return CONFIG.BLESSING_TIME;
+            return CONFIG.FINAL_BLESSING_TIME;
         }
 
-        // ============ 主流程控制 ============
-        const inputScreen = document.getElementById('input-screen');
-        const startBtn = document.getElementById('start-btn');
-        const nameInput = document.getElementById('name-input');
-        const controlBtn = document.getElementById('control-btn');
-
-        startBtn.addEventListener('click', () => {
-            const name = nameInput.value.trim();
-            if (!name) {
-                alert('请输入你的名字！');
-                return;
-            }
-            startAnimation(name);
-        });
-
-        nameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                startBtn.click();
-            }
-        });
-
-        controlBtn.addEventListener('click', () => {
-            if (state.isPlaying) {
-                stopAnimation();
-            } else {
-                if (state.userName) {
-                    startAnimation(state.userName);
-                }
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && state.isPlaying) {
-                stopAnimation();
-            }
-        });
-
-        function startAnimation(userName) {
-            state.isPlaying = true;
-            state.userName = userName;
-
-            inputScreen.classList.add('hidden');
-            particleCanvas.style.display = 'block';
-
-            controlBtn.style.display = 'block';
-            controlBtn.textContent = '⏹️ 停止播放';
-            controlBtn.style.background = 'rgba(255, 215, 0, 0.9)';
-
-            if (!state.animationId) {
-                requestAnimationFrame(animate);
-            }
-
-            playSequence(userName);
+        async function showText(text) {
+            return new Promise(resolve => {
+                const td = document.getElementById('text-display');
+                const tc = document.getElementById('text-content');
+                tc.textContent = text; td.style.display = 'flex';
+                requestAnimationFrame(() => { tc.style.opacity = '1'; tc.style.transform = 'scale(1'); });
+                setTimeout(() => resolve(), getDisplayTime(text));
+            });
         }
 
-        function stopAnimation() {
-            state.isPlaying = false;
-            state.phase = 'idle';
-            state.particles = [];
-            state.extraParticles = [];
-
-            controlBtn.textContent = '🔄 重新播放';
-            controlBtn.style.background = 'rgba(0, 200, 100, 0.9)';
-
-            particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
-        }
-
-        // ============ 私人定制配置 ============
-        const PERSONALIZED_CONFIG = {
-            '赵慧敏': {
-                useParticleAnimation: true,
-                blessings: [
-                    `加油 赵慧敏`,
-                    '金榜题名',
-                    '必胜',
-                    '前程似锦',
-                    '梦想成真'
-                ]
-            },
-            '葛林轩': {
-                useParticleAnimation: false,
-                blessings: ['祝福语1', '祝福语2', '祝福语3']
-            },
-            '赵子杰': {
-                useParticleAnimation: false,
-                blessings: ['祝福语1', '祝福语2', '祝福语3']
-            },
-            '王博杰': {
-                useParticleAnimation: false,
-                blessings: ['祝福语1', '祝福语2', '祝福语3']
-            },
-            '李恬静': {
-                useParticleAnimation: false,
-                blessings: ['祝福语1', '祝福语2', '祝福语3']
-            },
-            '张琳苒': {
-                useParticleAnimation: false,
-                blessings: ['祝福语1', '祝福语2', '祝福语3']
-            }
-        };
-
-        const DEFAULT_BLESSINGS = [
-            '金榜题名',
-            '前程似锦',
-            '梦想成真'
-        ];
-
-        async function playSequence(userName) {
-            const config = PERSONALIZED_CONFIG[userName];
-            const isSpecialUser = config && config.useParticleAnimation;
-
-            if (isSpecialUser) {
-                await playParticleAnimation(userName, config.blessings);
-            } else {
-                const blessings = config ? config.blessings : [...DEFAULT_BLESSINGS];
-                await playTextScaleAnimation(userName, blessings);
-            }
+        async function transitionTo(nextText) {
+            return new Promise(resolve => setTimeout(() => { state.nextText = nextText; resolve(); }, 300));
         }
 
         async function playParticleAnimation(userName, customBlessings) {
-            const countdownNumbers = ['3', '2', '1'];
-            const allTexts = [...countdownNumbers, ...customBlessings];
-
-            while (state.isPlaying) {
-                state.particles = [];
-                state.extraParticles = [];
-                state.targetPositions = [];
-
-                await showText(allTexts[0]);
-
-                for (let i = 1; i < allTexts.length; i++) {
-                    if (!state.isPlaying) break;
-                    await transitionTo(allTexts[i]);
-                }
-
-                if (!state.isPlaying) break;
-
-                await transitionTo(countdownNumbers[0]);
-            }
-        }
-
-        async function playTextScaleAnimation(userName, blessings) {
-            const textDisplay = document.getElementById('text-display');
-            const textContent = document.getElementById('text-content');
-            const particleCanvas = document.getElementById('particle-canvas');
-
-            textDisplay.style.display = 'flex';
-            particleCanvas.style.display = 'none';
-
-            const allTexts = [userName, ...blessings];
-
-            while (state.isPlaying) {
-                for (let i = 0; i < allTexts.length; i++) {
-                    if (!state.isPlaying) break;
-
-                    await showScalingText(textContent, allTexts[i]);
-                    await new Promise(resolve => setTimeout(resolve, 1500));
-
-                    hideScalingText(textContent);
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                }
-
-                if (!state.isPlaying) break;
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-
-            textDisplay.style.display = 'none';
-            particleCanvas.style.display = 'block';
-        }
-
-        function showScalingText(element, text) {
-            return new Promise((resolve) => {
-                element.textContent = text;
-                element.style.opacity = '0';
-                element.style.transform = 'scale(0.1)';
-                element.style.fontSize = '20px';
-
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        element.style.opacity = '1';
-                        element.style.transform = 'scale(1)';
-                        element.style.fontSize = '120px';
-                        resolve();
+            initParticleCanvas(); state.particles = []; state.isPlaying = true; state.phase = 'idle';
+            const countdowns = ['3', '2', '1'];
+            const blessings = customBlessings || DEFAULT_BLESSINGS;
+            const sequence = [...countdowns, ...blessings];
+            for (let i = 0; i < sequence.length; i++) {
+                const text = sequence[i]; state.currentText = text;
+                state.targetPositions = getTextTargetPositions(text);
+                if (i === 0) state.particles = state.targetPositions.map(pos => new Particle(pos.x, pos.y));
+                state.phase = 'display'; state.displayStartTime = performance.now(); state.nextText = null;
+                await showText(text);
+                if (i < sequence.length - 1) {
+                    await transitionTo(sequence[i+1]); state.phase = 'transition';
+                    state.transitionStartTime = performance.now(); state.hasAssignedTargets = false;
+                    await new Promise(resolve => {
+                        const check = () => { if (state.phase === 'display') resolve(); else requestAnimationFrame(check); };
+                        requestAnimationFrame(check);
                     });
-                });
-            });
+                }
+            }
+            state.isPlaying = false; state.phase = 'idle';
+        }
+
+        async function showScalingText(element, text) {
+            element.textContent = text; element.style.opacity = '1'; element.style.transform = 'scale(1)';
+            return new Promise(resolve => setTimeout(() => resolve(), getDisplayTime(text)));
         }
 
         function hideScalingText(element) {
-            return new Promise((resolve) => {
-                element.style.opacity = '0';
-                element.style.transform = 'scale(1.5)';
-                setTimeout(resolve, 2000);
+            return new Promise(resolve => {
+                element.style.opacity = '0'; element.style.transform = 'scale(0.1)';
+                setTimeout(() => { element.style.display = 'none'; resolve(); }, 500);
             });
         }
 
-        function showText(text) {
-            return new Promise((resolve) => {
-                state.currentText = text;
-                const positions = getTextTargetPositions(text);
-                state.particles = positions.map(pos => new Particle(pos.x, pos.y));
-                state.nextText = '';
-                state.targetPositions = [];
-                state.extraParticles = [];
-                state.hasAssignedTargets = false;
-                state.phase = 'display';
-                state.displayStartTime = performance.now();
-
-                const waitTime = getDisplayTime(text);
-
-                setTimeout(() => {
-                    if (state.isPlaying) resolve();
-                }, waitTime);
-            });
-        }
-
-        function transitionTo(nextText) {
-            return new Promise((resolve) => {
-                state.nextText = nextText;
-                window._onTransitionComplete = resolve;
-            });
-        }
-
-        // ============ 窗口大小调整 ============
-        function handleResize() {
-            initMatrix();
-            initParticleCanvas();
-
-            if (state.isPlaying && state.phase === 'display' && state.currentText) {
-                const positions = getTextTargetPositions(state.currentText);
-                state.particles = positions.map(pos => new Particle(pos.x, pos.y));
+        async function playTextScaleAnimation(userName, blessings) {
+            const td = document.getElementById('text-display'), tc = document.getElementById('text-content');
+            td.style.display = 'flex';
+            for (let i = 0; i < blessings.length; i++) {
+                await showScalingText(tc, blessings[i]);
+                if (i < blessings.length - 1) { await hideScalingText(tc); await new Promise(r => setTimeout(r, 300)); }
             }
+            await new Promise(r => setTimeout(r, 1500)); await hideScalingText(tc);
         }
 
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(handleResize, 200);
-        });
+        async function playSequence(userName) {
+            const cfg = PERSONALIZED_CONFIG[userName];
+            const usePA = cfg && cfg['use_particle_animation'];
+            const blessings = cfg ? cfg['blessings'] : DEFAULT_BLESSINGS;
+            document.getElementById('input-screen').style.display = 'none';
+            document.getElementById('control-btn').style.display = 'block';
+            if (!state.animationId) animate(performance.now());
+            if (usePA) await playParticleAnimation(userName, blessings);
+            else await playTextScaleAnimation(userName, blessings);
+            stopAnimation();
+        }
 
-        // 初始化
-        initMatrix();
-        initParticleCanvas();
-        requestAnimationFrame(matrixLoop);
+        function startAnimation(userName) { if (state.isPlaying) return; state.userName = userName; playSequence(userName); }
+
+        function stopAnimation() {
+            state.isPlaying = false; state.phase = 'idle';
+            if (state.animationId) { cancelAnimationFrame(state.animationId); state.animationId = null; }
+            particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+            state.particles = []; state.targetPositions = []; state.extraParticles = [];
+            const td = document.getElementById('text-display'); if (td) td.style.display = 'none';
+            document.getElementById('input-screen').style.display = 'flex';
+            document.getElementById('control-btn').style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initMatrix(); initParticleCanvas();
+            requestAnimationFrame(matrixLoop); animate(performance.now());
+
+            const startBtn = document.getElementById('start-btn');
+            const nameInput = document.getElementById('name-input');
+            const controlBtn = document.getElementById('control-btn');
+
+            startBtn.addEventListener('click', () => {
+                const name = nameInput.value.trim();
+                if (name) startAnimation(name);
+            });
+
+            nameInput.addEventListener('keypress', e => { if (e.key === 'Enter') startBtn.click(); });
+            controlBtn.addEventListener('click', () => stopAnimation());
+
+            window.addEventListener('resize', () => { if (state.isPlaying) initParticleCanvas(); initMatrix(); });
+        });
     </script>
 </body>
 </html>

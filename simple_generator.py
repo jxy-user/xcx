@@ -1,0 +1,500 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+简化版HTML生成器 - 专为分享设计
+生成完全独立的HTML文件，无需服务器
+"""
+
+import json
+import os
+from datetime import datetime
+
+# ✨✨✨ 在这里配置每个人的祝福语 ✨✨✨
+CONFIG = {
+    '赵慧敏': {
+        'use_particle_animation': True,
+        'blessings': [
+            '加油 赵慧敏',
+            '金榜题名',
+            '必胜',
+            '前程似锦',
+            '梦想成真'
+        ]
+    },
+    '葛林轩': {
+        'use_particle_animation': False,
+        'blessings': [
+            '祝福语1',
+            '祝福语2',
+            '祝福语3'
+        ]
+    },
+    '赵子杰': {
+        'use_particle_animation': False,
+        'blessings': [
+            '祝福语1',
+            '祝福语2',
+            '祝福语3'
+        ]
+    },
+    '王博杰': {
+        'use_particle_animation': False,
+        'blessings': [
+            '祝福语1',
+            '祝福语2',
+            '祝福语3'
+        ]
+    },
+    '李恬静': {
+        'use_particle_animation': False,
+        'blessings': [
+            '祝福语1',
+            '祝福语2',
+            '祝福语3'
+        ]
+    },
+    '张琳苒': {
+        'use_particle_animation': False,
+        'blessings': [
+            '祝福语1',
+            '祝福语2',
+            '祝福语3'
+        ]
+    }
+}
+
+DEFAULT_BLESSINGS = ['金榜题名', '前程似锦', '梦想成真']
+
+def generate_html():
+    """生成完整的独立HTML文件"""
+    
+    config_json = json.dumps(CONFIG, indent=12, ensure_ascii=False)
+    default_json = json.dumps(DEFAULT_BLESSINGS, ensure_ascii=False)
+    
+    html = f'''<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>高考祝福</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        html, body {{ width: 100%; height: 100%; overflow: hidden; }}
+        body {{ background: #000; font-family: 'Microsoft YaHei', sans-serif; }}
+        
+        /* 强制横屏显示 */
+        @media screen and (max-width: 768px) and (orientation: portrait) {{
+            body {{ transform: rotate(90deg); transform-origin: center center; position: fixed; top: 0; left: 0; }}
+            html {{ transform: rotate(90deg); transform-origin: center center; }}
+        }}
+        
+        #matrix-canvas {{ position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }}
+        .container {{ position: relative; z-index: 10; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; }}
+        #input-screen {{ text-align: center; color: #fff; padding: 20px; }}
+        #input-screen h1 {{ font-size: clamp(28px, 6vw, 48px); margin-bottom: 30px; text-shadow: 0 0 20px rgba(255,215,0,0.8); color: #FFD700; }}
+        #name-input {{ font-size: clamp(16px, 3vw, 24px); padding: 15px 30px; width: min(300px, 80vw); border: 2px solid #FFD700; border-radius: 10px; background: rgba(0,0,0,0.7); color: #fff; outline: none; margin-bottom: 20px; }}
+        #name-input::placeholder {{ color: rgba(255,215,0,0.5); }}
+        #start-btn {{ font-size: clamp(16px, 3vw, 24px); padding: 15px 40px; background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 20px rgba(255,215,0,0.4); transition: all 0.3s ease; }}
+        #start-btn:hover {{ transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,215,0,0.6); }}
+        #particle-canvas {{ position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }}
+        #text-display {{ display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; justify-content: center; align-items: center; pointer-events: none; }}
+        #text-content {{ color: #FFD700; font-size: 20px; font-weight: bold; text-align: center; text-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700, 0 0 60px #FFD700; opacity: 0; transform: scale(0.1); transition: all 2s cubic-bezier(0.68, -0.55, 0.265, 1.55); }}
+        #control-btn {{ display: none; position: fixed; bottom: 20px; right: 20px; z-index: 100; padding: 12px 25px; font-size: 16px; border: none; border-radius: 25px; background: rgba(255, 215, 0, 0.9); color: #000; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.5); transition: all 0.3s ease; }}
+    </style>
+</head>
+<body>
+    <canvas id="matrix-canvas"></canvas>
+    <canvas id="particle-canvas"></canvas>
+    <div id="text-display"><div id="text-content"></div></div>
+    <button id="control-btn">停止播放</button>
+    <div class="container">
+        <div id="input-screen">
+            <h1>✨ JXY的高考祝福 ✨</h1>
+            <input type="text" id="name-input" placeholder="请输入你的名字"><br>
+            <button id="start-btn">开始播放</button>
+        </div>
+    </div>
+
+    <script>
+        // ============ 配置 ============
+        const CONFIG = {{
+            COUNTDOWN_TIME: 800,
+            BLESSING_TIME: 2000,
+            FINAL_BLESSING_TIME: 3500,
+            TRANSITION_DURATION: 2500,
+            PARTICLE_SIZE: 3,
+            SAMPLE_INTERVAL: 8,
+            EXPLODE_FORCE_MIN: 15,
+            EXPLODE_FORCE_MAX: 30,
+            AIR_RESISTANCE: 0.985,
+            REFORM_EASE_FACTOR: 0.04,
+            EXPLODE_START: 0,
+            REFORM_START: 0.35,
+            FONT_SIZE: 200
+        }};
+
+        const PERSONALIZED_CONFIG = {config_json};
+        const DEFAULT_BLESSINGS = {default_json};
+
+        // ============ 状态管理 ============
+        const state = {{
+            isPlaying: false, userName: '', phase: 'idle', currentText: '', nextText: '',
+            displayStartTime: 0, transitionStartTime: 0, particles: [], targetPositions: [],
+            extraParticles: [], animationId: null, hasAssignedTargets: false,
+            canvasWidth: 0, canvasHeight: 0
+        }};
+
+        // ============ 矩阵雨背景 ============
+        const matrixCanvas = document.getElementById('matrix-canvas');
+        const matrixCtx = matrixCanvas.getContext('2d');
+        const chars = '金榜题名前程似锦梦想成真学业有成鹏程万里一帆风顺万事如意心想事成成功胜利努力奋斗拼搏坚持加油未来可期';
+        const fontSize_m = 16;
+        let drops = [];
+
+        function initMatrix() {{
+            let cw, ch;
+            const sw = window.innerWidth, sh = window.innerHeight;
+            const isMP = sw < 768 && sh > sw;
+            if (isMP) {{ cw = sh; ch = sw; }} else {{ cw = sw; ch = sh; }}
+            matrixCanvas.width = cw; matrixCanvas.height = ch;
+            drops = Array.from({{length: Math.floor(cw / fontSize_m)}}, () => Math.random() * -100);
+        }}
+
+        function drawMatrix() {{
+            matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+            matrixCtx.fillStyle = '#FFD700';
+            matrixCtx.font = fontSize_m + 'px Microsoft YaHei';
+            for (let i = 0; i < drops.length; i++) {{
+                const c = chars[Math.floor(Math.random() * chars.length)];
+                matrixCtx.fillText(c, i * fontSize_m, drops[i] * fontSize_m);
+                if (drops[i] * fontSize_m > matrixCanvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }}
+        }}
+
+        let lastMatrixTime = 0;
+        function matrixLoop(ts) {{ if (ts - lastMatrixTime >= 50) {{ drawMatrix(); lastMatrixTime = ts; }} requestAnimationFrame(matrixLoop); }}
+
+        // ============ 粒子系统 ============
+        const particleCanvas = document.getElementById('particle-canvas');
+        const particleCtx = particleCanvas.getContext('2d');
+
+        function initParticleCanvas() {{
+            let cw, ch;
+            const sw = window.innerWidth, sh = window.innerHeight;
+            const isMP = sw < 768 && sh > sw;
+            if (isMP) {{ cw = sh; ch = sw; }} else {{ cw = sw; ch = sh; }}
+            particleCanvas.width = cw; particleCanvas.height = ch;
+            state.canvasWidth = cw; state.canvasHeight = ch;
+        }}
+
+        class Particle {{
+            constructor(x, y, isNew = false) {{
+                this.x = x; this.y = y; this.originX = x; this.originY = y;
+                this.targetX = x; this.targetY = y;
+                this.size = CONFIG.PARTICLE_SIZE + (Math.random() - 0.5) * 2;
+                this.brightness = 0.8 + Math.random() * 0.2;
+                this.vx = 0; this.vy = 0;
+                this.state = isNew ? 'entering' : 'stable';
+                this.life = isNew ? 0 : 1; this.isExtra = isNew;
+            }}
+
+            explode() {{
+                if (this.state === 'stable') {{
+                    this.state = 'exploding';
+                    const angle = Math.random() * Math.PI * 2;
+                    const force = CONFIG.EXPLODE_FORCE_MIN + Math.random() * (CONFIG.EXPLODE_FORCE_MAX - CONFIG.EXPLODE_FORCE_MIN);
+                    this.vx = Math.cos(angle) * force; this.vy = Math.sin(angle) * force;
+                }}
+            }}
+
+            setTarget(x, y) {{ this.targetX = x; this.targetY = y; if (this.state === 'exploding' || this.state === 'entering') this.state = 'reforming'; }}
+
+            update(progress = 0) {{
+                const time = Date.now() * 0.001;
+                switch (this.state) {{
+                    case 'stable':
+                        this.x = this.originX + Math.sin(time + this.originY * 0.01) * 0.5;
+                        this.y = this.originY + Math.cos(time + this.originX * 0.01) * 0.5;
+                        break;
+                    case 'exploding':
+                        this.x += this.vx; this.y += this.vy;
+                        this.vx *= CONFIG.AIR_RESISTANCE; this.vy *= CONFIG.AIR_RESISTANCE;
+                        this.life = Math.max(0.4, 1 - progress * 0.35);
+                        break;
+                    case 'reforming':
+                        const dx = this.targetX - this.x, dy = this.targetY - this.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist > 2) {{ this.x += dx * 0.055; this.y += dy * 0.055; }}
+                        else if (this.state === 'reforming') {{ this.state = 'stable'; this.originX = this.x; this.originY = this.y; }}
+                        this.life += (1 - this.life) * 0.1;
+                        break;
+                    case 'entering':
+                        this.life = Math.min(1, this.life + 0.03);
+                        break;
+                }}
+            }}
+
+            draw(alpha = 1) {{
+                if (this.life <= 0) return;
+                particleCtx.save();
+                particleCtx.globalAlpha = alpha * this.life * this.brightness;
+                particleCtx.fillStyle = '#fff';
+                particleCtx.shadowBlur = 8; particleCtx.shadowColor = '#fff';
+                particleCtx.beginPath(); particleCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2); particleCtx.fill();
+                particleCtx.restore();
+            }}
+        }}
+
+        function createParticleFromOutside(tx, ty) {{
+            const side = Math.floor(Math.random() * 4);
+            let x, y;
+            if (side === 0) {{ x = Math.random() * state.canvasWidth; y = -50 - Math.random() * 100; }}
+            else if (side === 1) {{ x = state.canvasWidth + 50 + Math.random() * 100; y = Math.random() * state.canvasHeight; }}
+            else if (side === 2) {{ x = Math.random() * state.canvasWidth; y = state.canvasHeight + 50 + Math.random() * 100; }}
+            else {{ x = -50 - Math.random() * 100; y = Math.random() * state.canvasHeight; }}
+            const p = new Particle(x, y, true); p.setTarget(tx, ty); return p;
+        }}
+
+        function getResponsiveFontSize(text) {{
+            let dw, dh;
+            const sw = window.innerWidth, sh = window.innerHeight;
+            const isMP = sw < 768 && sh > sw;
+            if (isMP) {{ dw = sh; dh = sw; }} else {{ dw = sw; dh = sh; }}
+            
+            let fs = CONFIG.FONT_SIZE;
+            const isMobile = dw < 1024;
+            if (isMobile) {{
+                const cc = text.length;
+                const mw = dw * 0.9, mh = dh * 0.6;
+                let fsw, fsh;
+                if (cc <= 2) {{ fsw = Math.floor(mw / (cc * 0.8)); fsh = Math.floor(mh); }}
+                else if (cc <= 4) {{ fsw = Math.floor(mw / (cc * 0.75)); fsh = Math.floor(mh); }}
+                else if (cc <= 6) {{ fsw = Math.floor(mw / (cc * 0.7)); fsh = Math.floor(mh * 0.9); }}
+                else {{ fsw = Math.floor(mw / (cc * 0.65)); fsh = Math.floor(mh * 0.8); }}
+                fs = Math.min(fsw, fsh, fs);
+                const md = Math.min(dw, dh);
+                if (cc <= 2) fs = Math.min(fs, Math.floor(md * 0.45));
+                else if (cc <= 4) fs = Math.min(fs, Math.floor(md * 0.35));
+                else if (cc <= 6) fs = Math.min(fs, Math.floor(md * 0.28));
+                else fs = Math.min(fs, Math.floor(md * 0.22));
+                fs = Math.max(40, Math.min(fs, 120));
+            }} else if (dw < 1400) {{ fs = Math.min(fs, 160); }}
+            return fs;
+        }}
+
+        function getTextTargetPositions(text) {{
+            const tc = document.createElement('canvas');
+            const tctx = tc.getContext('2d');
+            tc.width = particleCanvas.width; tc.height = particleCanvas.height;
+            const rfs = getResponsiveFontSize(text);
+            tctx.font = 'bold ' + rfs + 'px Microsoft YaHei';
+            const mw = tctx.measureText(text).width;
+            let ffs = rfs;
+            if (mw > particleCanvas.width * 0.85) {{
+                ffs = Math.floor(rfs * (particleCanvas.width * 0.85) / mw);
+                ffs = Math.max(25, ffs);
+            }}
+            tctx.fillStyle = '#fff';
+            tctx.font = 'bold ' + ffs + 'px Microsoft YaHei';
+            tctx.textAlign = 'center'; tctx.textBaseline = 'middle';
+            tctx.fillText(text, tc.width / 2, tc.height / 2);
+            const idata = tctx.getImageData(0, 0, tc.width, tc.height);
+            const data = idata.data;
+            const positions = [];
+            for (let y = 0; y < tc.height; y += CONFIG.SAMPLE_INTERVAL)
+                for (let x = 0; x < tc.width; x += CONFIG.SAMPLE_INTERVAL)
+                    if (data[(y * tc.width + x) * 4 + 3] > 128) positions.push({{x, y}});
+            return positions;
+        }}
+
+        function assignTargets(currentParticles, targetPositions) {{
+            if (!targetPositions.length) return {{used: [], extras: []}};
+            const cc = currentParticles.length, tc = targetPositions.length;
+            const result = {{used: [], extras: []}};
+            const usedTargets = new Set();
+            currentParticles.forEach((p, idx) => {{
+                let ti;
+                if (cc <= tc) {{ ti = Math.floor((idx / cc) * tc); ti = (ti + Math.floor(Math.random() * 3)) % tc; }}
+                else {{ ti = idx % tc; if (Math.random() > 0.7) ti = Math.floor(Math.random() * tc); }}
+                p.setTarget(targetPositions[ti].x, targetPositions[ti].y);
+                usedTargets.add(ti); result.used.push(idx);
+            }});
+            for (let i = 0; i < tc; i++) if (!usedTargets.has(i)) result.extras.push(targetPositions[i]);
+            return result;
+        }}
+
+        function animate(timestamp) {{
+            particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+            if (!state.isPlaying || state.phase === 'idle') {{ state.animationId = requestAnimationFrame(animate); return; }}
+
+            if (state.phase === 'display') {{
+                if (state.particles.length) state.particles.forEach(p => {{ p.update(); p.draw(1); }});
+                const elapsed = timestamp - state.displayStartTime;
+                if (elapsed >= getDisplayTime(state.currentText) && state.nextText) {{
+                    state.phase = 'transition'; state.transitionStartTime = timestamp;
+                    state.targetPositions = getTextTargetPositions(state.nextText);
+                }}
+            }} else if (state.phase === 'transition') {{
+                const elapsed = timestamp - state.transitionStartTime;
+                const progress = Math.min(1, elapsed / CONFIG.TRANSITION_DURATION);
+                if (progress < CONFIG.REFORM_START) {{
+                    state.particles.forEach(p => {{ if (p.state === 'stable') p.explode(); p.update(progress); p.draw(1); }});
+                }} else {{
+                    if (!state.hasAssignedTargets) {{
+                        const assignment = assignTargets(state.particles, state.targetPositions);
+                        state.extraParticles = assignment.extras.map(pos => createParticleFromOutside(pos.x, pos.y));
+                        state.hasAssignedTargets = true;
+                    }}
+                    [...state.particles, ...state.extraParticles].forEach(p => {{ p.update(progress); p.draw(1); }});
+                }}
+                if (progress >= 1) {{
+                    state.particles = [...state.particles.filter(p => !p.isExtra), ...state.extraParticles];
+                    state.extraParticles = []; state.hasAssignedTargets = false;
+                    state.currentText = state.nextText; state.nextText = null;
+                    state.phase = 'display'; state.displayStartTime = timestamp;
+                }}
+            }}
+            state.animationId = requestAnimationFrame(animate);
+        }}
+
+        function getDisplayTime(text) {{
+            const len = text.length;
+            if (len <= 3) return CONFIG.COUNTDOWN_TIME;
+            if (len <= 6) return CONFIG.BLESSING_TIME;
+            return CONFIG.FINAL_BLESSING_TIME;
+        }}
+
+        async function showText(text) {{
+            return new Promise(resolve => {{
+                const td = document.getElementById('text-display');
+                const tc = document.getElementById('text-content');
+                tc.textContent = text; td.style.display = 'flex';
+                requestAnimationFrame(() => {{ tc.style.opacity = '1'; tc.style.transform = 'scale(1); }});
+                setTimeout(() => resolve(), getDisplayTime(text));
+            }});
+        }}
+
+        async function transitionTo(nextText) {{
+            return new Promise(resolve => setTimeout(() => {{ state.nextText = nextText; resolve(); }}, 300));
+        }}
+
+        async function playParticleAnimation(userName, customBlessings) {{
+            initParticleCanvas(); state.particles = []; state.isPlaying = true; state.phase = 'idle';
+            const countdowns = ['3', '2', '1'];
+            const blessings = customBlessings || DEFAULT_BLESSINGS;
+            const sequence = [...countdowns, ...blessings];
+            for (let i = 0; i < sequence.length; i++) {{
+                const text = sequence[i]; state.currentText = text;
+                state.targetPositions = getTextTargetPositions(text);
+                if (i === 0) state.particles = state.targetPositions.map(pos => new Particle(pos.x, pos.y));
+                state.phase = 'display'; state.displayStartTime = performance.now(); state.nextText = null;
+                await showText(text);
+                if (i < sequence.length - 1) {{
+                    await transitionTo(sequence[i+1]); state.phase = 'transition';
+                    state.transitionStartTime = performance.now(); state.hasAssignedTargets = false;
+                    await new Promise(resolve => {{
+                        const check = () => {{ if (state.phase === 'display') resolve(); else requestAnimationFrame(check); }};
+                        requestAnimationFrame(check);
+                    }});
+                }}
+            }}
+            state.isPlaying = false; state.phase = 'idle';
+        }}
+
+        async function showScalingText(element, text) {{
+            element.textContent = text; element.style.opacity = '1'; element.style.transform = 'scale(1)';
+            return new Promise(resolve => setTimeout(() => resolve(), getDisplayTime(text)));
+        }}
+
+        function hideScalingText(element) {{
+            return new Promise(resolve => {{
+                element.style.opacity = '0'; element.style.transform = 'scale(0.1)';
+                setTimeout(() => {{ element.style.display = 'none'; resolve(); }}, 500);
+            }});
+        }}
+
+        async function playTextScaleAnimation(userName, blessings) {{
+            const td = document.getElementById('text-display'), tc = document.getElementById('text-content');
+            td.style.display = 'flex';
+            for (let i = 0; i < blessings.length; i++) {{
+                await showScalingText(tc, blessings[i]);
+                if (i < blessings.length - 1) {{ await hideScalingText(tc); await new Promise(r => setTimeout(r, 300)); }}
+            }}
+            await new Promise(r => setTimeout(r, 1500)); await hideScalingText(tc);
+        }}
+
+        async function playSequence(userName) {{
+            const cfg = PERSONALIZED_CONFIG[userName];
+            const usePA = cfg && cfg['use_particle_animation'];
+            const blessings = cfg ? cfg['blessings'] : DEFAULT_BLESSINGS;
+            document.getElementById('input-screen').style.display = 'none';
+            document.getElementById('control-btn').style.display = 'block';
+            if (!state.animationId) animate(performance.now());
+            if (usePA) await playParticleAnimation(userName, blessings);
+            else await playTextScaleAnimation(userName, blessings);
+            stopAnimation();
+        }}
+
+        function startAnimation(userName) {{ if (state.isPlaying) return; state.userName = userName; playSequence(userName); }}
+
+        function stopAnimation() {{
+            state.isPlaying = false; state.phase = 'idle';
+            if (state.animationId) {{ cancelAnimationFrame(state.animationId); state.animationId = null; }}
+            particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+            state.particles = []; state.targetPositions = []; state.extraParticles = [];
+            const td = document.getElementById('text-display'); if (td) td.style.display = 'none';
+            document.getElementById('input-screen').style.display = 'flex';
+            document.getElementById('control-btn').style.display = 'none';
+        }}
+
+        // ============ 初始化 ============
+        document.addEventListener('DOMContentLoaded', () => {{
+            initMatrix(); initParticleCanvas();
+            requestAnimationFrame(matrixLoop); animate(performance.now());
+
+            const startBtn = document.getElementById('start-btn');
+            const nameInput = document.getElementById('name-input');
+            const controlBtn = document.getElementById('control-btn');
+
+            startBtn.addEventListener('click', () => {{
+                const name = nameInput.value.trim();
+                if (name) startAnimation(name);
+            }});
+
+            nameInput.addEventListener('keypress', e => {{ if (e.key === 'Enter') startBtn.click(); }});
+            controlBtn.addEventListener('click', () => stopAnimation());
+
+            window.addEventListener('resize', () => {{ if (state.isPlaying) initParticleCanvas(); initMatrix(); }});
+        }});
+    </script>
+</body>
+</html>'''
+
+    output_file = "index.html"
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write(html)
+
+    file_size = os.path.getsize(output_file) / 1024
+    
+    print("=" * 60)
+    print("✅ 独立HTML文件已生成！")
+    print("=" * 60)
+    print(f"\n📄 文件名: {output_file}")
+    print(f"📂 大小: {file_size:.1f} KB")
+    print(f"📍 路径: {os.path.abspath(output_file)}")
+    print("\n💡 使用方法:")
+    print("   ① 双击 index.html 在浏览器中打开")
+    print("   ② 或通过微信/QQ/邮件发送给朋友")
+    print("   ③ 手机端可直接在浏览器中查看")
+    print("   ④ 无需服务器，无需联网（离线可用）")
+    print("\n⚠️  修改祝福语:")
+    print("   打开本文件，编辑上方的 CONFIG 字典即可")
+    print("=" * 60)
+    
+    return output_file
+
+
+if __name__ == "__main__":
+    generate_html()
