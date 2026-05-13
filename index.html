@@ -2,18 +2,33 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>高考祝福</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; overflow: hidden; }
         body { background: #000; font-family: 'Microsoft YaHei', sans-serif; }
 
-        #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.4; }
         #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
         #text-display { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; justify-content: center; align-items: center; pointer-events: none; }
         #text-content { color: #FFD700; font-size: 20px; font-weight: bold; text-align: center; text-shadow: 0 0 20px #FFD700, 0 0 40px #FFD700, 0 0 60px #FFD700; opacity: 0; transform: scale(0.1); transition: all 2s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
         #control-btn { display: none; position: fixed; bottom: 20px; right: 20px; z-index: 100; padding: 12px 25px; font-size: 16px; border: none; border-radius: 25px; background: rgba(255, 215, 0, 0.9); color: #000; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.5); transition: all 0.3s ease; }
+
+        /* 移动端竖屏时旋转canvas */
+        @media screen and (max-width: 768px) and (orientation: portrait) {
+            #matrix-canvas, #particle-canvas {
+                transform: rotate(90deg);
+                transform-origin: center center;
+                width: 100vh;
+                height: 100vw;
+                left: calc(50% - 50vh);
+                top: calc(50% - 50vw);
+            }
+        }
 
         /* ============ 桌面端布局 ============ */
         .desktop-layout {
@@ -118,12 +133,14 @@
             BLESSING_TIME: 2000,
             FINAL_BLESSING_TIME: 3500,
             TRANSITION_DURATION: 2500,
-            PARTICLE_SIZE: 3,
-            SAMPLE_INTERVAL: 8,
-            EXPLODE_FORCE_MIN: 15,
-            EXPLODE_FORCE_MAX: 30,
-            AIR_RESISTANCE: 0.985,
-            FONT_SIZE: 200
+            PARTICLE_SIZE: 2,
+            SAMPLE_INTERVAL: 6,
+            EXPLODE_FORCE_MIN: 8,
+            EXPLODE_FORCE_MAX: 15,
+            AIR_RESISTANCE: 0.99,
+            FONT_SIZE: 200,
+            MAX_PARTICLES: 800,
+            PARTICLE_BRIGHTNESS: 0.7
         };
 
         const PERSONALIZED_CONFIG = {
@@ -202,6 +219,26 @@
         // 检测是否为移动端
         state.isMobile = window.innerWidth <= 768;
 
+        // 检测屏幕方向
+        function getScreenOrientation() {
+            if (window.screen && window.screen.orientation) {
+                return window.screen.orientation.type;
+            }
+            // 回退检测
+            return window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+        }
+
+        // 获取正确的屏幕尺寸（考虑方向）
+        function getScreenSize() {
+            const isLandscape = window.innerWidth > window.innerHeight;
+            if (isLandscape) {
+                return { width: window.innerWidth, height: window.innerHeight };
+            } else {
+                // 竖屏时交换宽高（模拟横屏）
+                return { width: window.innerHeight, height: window.innerWidth };
+            }
+        }
+
         // ============ 矩阵雨背景 ============
         const matrixCanvas = document.getElementById('matrix-canvas');
         const matrixCtx = matrixCanvas.getContext('2d');
@@ -210,8 +247,9 @@
         let drops = [];
 
         function initMatrix() {
-            matrixCanvas.width = window.innerWidth;
-            matrixCanvas.height = window.innerHeight;
+            const size = getScreenSize();
+            matrixCanvas.width = size.width;
+            matrixCanvas.height = size.height;
             drops = Array.from({length: Math.floor(matrixCanvas.width / fontSize_m)}, () => Math.random() * -100);
         }
 
@@ -239,8 +277,9 @@
         const particleCtx = particleCanvas.getContext('2d');
 
         function initParticleCanvas() {
-            particleCanvas.width = window.innerWidth;
-            particleCanvas.height = window.innerHeight;
+            const size = getScreenSize();
+            particleCanvas.width = size.width;
+            particleCanvas.height = size.height;
             state.canvasWidth = particleCanvas.width;
             state.canvasHeight = particleCanvas.height;
         }
@@ -254,7 +293,7 @@
                 this.targetX = x;
                 this.targetY = y;
                 this.size = CONFIG.PARTICLE_SIZE + (Math.random() - 0.5) * 2;
-                this.brightness = 0.8 + Math.random() * 0.2;
+                this.brightness = CONFIG.PARTICLE_BRIGHTNESS + (Math.random() - 0.5) * 0.2;
                 this.vx = 0;
                 this.vy = 0;
                 this.state = isNew ? 'entering' : 'stable';
@@ -339,11 +378,12 @@
         }
 
         function getResponsiveFontSize(text) {
-            const dw = window.innerWidth;
-            const dh = window.innerHeight;
+            const size = getScreenSize();
+            const dw = size.width;
+            const dh = size.height;
             
             let fs = CONFIG.FONT_SIZE;
-            const isMobile = dw < 1024;
+            const isMobile = window.innerWidth < 1024;
             
             if (isMobile) {
                 const cc = text.length;
@@ -397,10 +437,22 @@
             const data = idata.data;
             const positions = [];
             
-            for (let y = 0; y < tc.height; y += CONFIG.SAMPLE_INTERVAL) {
-                for (let x = 0; x < tc.width; x += CONFIG.SAMPLE_INTERVAL) {
+            // 使用适当的采样间隔
+            const interval = CONFIG.SAMPLE_INTERVAL;
+            for (let y = 0; y < tc.height; y += interval) {
+                for (let x = 0; x < tc.width; x += interval) {
                     if (data[(y * tc.width + x) * 4 + 3] > 128) positions.push({x: x, y: y});
                 }
+            }
+            
+            // 限制最大粒子数
+            if (positions.length > CONFIG.MAX_PARTICLES) {
+                const step = Math.ceil(positions.length / CONFIG.MAX_PARTICLES);
+                const filtered = [];
+                for (let i = 0; i < positions.length; i += step) {
+                    filtered.push(positions[i]);
+                }
+                return filtered;
             }
             
             return positions;
@@ -522,13 +574,17 @@
                 state.currentText = text;
                 state.targetPositions = getTextTargetPositions(text);
                 
-                if (i === 0) state.particles = state.targetPositions.map(pos => new Particle(pos.x, pos.y));
+                // 第一次循环创建粒子，后续循环在transition中更新
+                if (i === 0) {
+                    state.particles = state.targetPositions.map(pos => new Particle(pos.x, pos.y));
+                }
                 
                 state.phase = 'display';
                 state.displayStartTime = performance.now();
                 state.nextText = null;
                 
-                await showText(text);
+                // 粒子动画模式不显示金色文字，只等待
+                await new Promise(resolve => setTimeout(resolve, getDisplayTime(text)));
                 
                 if (i < sequence.length - 1) {
                     await transitionTo(sequence[i+1]);
@@ -538,11 +594,21 @@
                     
                     await new Promise(resolve => {
                         const check = () => {
-                            if (state.phase === 'display') resolve();
-                            else requestAnimationFrame(check);
+                            if (state.phase === 'display') {
+                                // 等待额外一帧确保粒子稳定
+                                requestAnimationFrame(() => resolve());
+                            } else {
+                                requestAnimationFrame(check);
+                            }
                         };
                         requestAnimationFrame(check);
                     });
+                    
+                    // 更新粒子数组，限制最大数量
+                    if (state.particles.length > CONFIG.MAX_PARTICLES) {
+                        const step = Math.ceil(state.particles.length / CONFIG.MAX_PARTICLES);
+                        state.particles = state.particles.filter((_, idx) => idx % step === 0);
+                    }
                 }
             }
             
