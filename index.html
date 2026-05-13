@@ -10,8 +10,41 @@
         body { background: #000; font-family: 'Microsoft YaHei', sans-serif; }
 
         @media screen and (max-width: 768px) and (orientation: portrait) {
-            body { transform: rotate(-90deg); transform-origin: center center; position: fixed; top: 0; left: 0; }
-            html { transform: rotate(-90deg); transform-origin: center center; }
+            .landscape-overlay { display: flex; }
+            .container { display: none; }
+        }
+
+        .landscape-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .landscape-overlay img {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 30px;
+            animation: rotate 2s linear infinite;
+        }
+
+        .landscape-overlay p {
+            color: #FFD700;
+            font-size: 24px;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(180deg); }
         }
 
         #matrix-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
@@ -29,6 +62,13 @@
     </style>
 </head>
 <body>
+    <div class="landscape-overlay">
+        <svg viewBox="0 0 24 24" fill="#FFD700" width="120" height="120">
+            <path d="M3 4h18v16H3V4zm2 2v12h14V6H5zm2 2h10v8H7V8z"/>
+            <path d="M6 16l4-4-4-4v8z" fill="#000"/>
+        </svg>
+        <p>请将手机横屏观看</p>
+    </div>
     <canvas id="matrix-canvas"></canvas>
     <canvas id="particle-canvas"></canvas>
     <div id="text-display"><div id="text-content"></div></div>
